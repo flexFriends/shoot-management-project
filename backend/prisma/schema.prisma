@@ -1,0 +1,234 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  HR
+  MANAGER
+  EMPLOYEE
+}
+
+enum WorkspacePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum WorkspaceStatus {
+  DRAFT
+  ACTIVE
+  IN_PROGRESS
+  COMPLETED
+  ARCHIVED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  COMPLETED
+  BLOCKED
+}
+
+enum NotificationType {
+  TASK_ASSIGNED
+  TASK_UPDATED
+  TASK_COMMENTED
+  WORKSPACE_CREATED
+  WORKSPACE_UPDATED
+  WORKSPACE_ASSIGNED
+  ESCALATION_HR
+  ESCALATION_ADMIN
+  REMINDER_1PM
+  REMINDER_2PM
+  TASK_STATUS_CHANGED
+  MENTION
+}
+
+model User {
+  id                String         @id @default(cuid())
+  name              String
+  email             String         @unique
+  password          String
+  role              Role           @default(EMPLOYEE)
+  avatar            String?
+  phone             String?
+  isActive          Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  lastLoginAt       DateTime?
+
+  // Relations
+  createdWorkspaces  Workspace[]         @relation("WorkspaceCreator")
+  workspaceMemberships WorkspaceMember[]
+  assignedTasks      TodoTask[]          @relation("TaskAssignee")
+  createdTasks       TodoTask[]          @relation("TaskCreator")
+  taskSubmissions    TaskSubmission[]
+  comments           Comment[]
+  notifications      Notification[]      @relation("NotificationRecipient")
+  sentNotifications  Notification[]      @relation("NotificationSender")
+  activityLogs       ActivityLog[]
+}
+
+model Workspace {
+  id            String            @id @default(cuid())
+  title         String
+  description   String?
+  shootLocation String?
+  shootDate     DateTime?
+  dueDate       DateTime?
+  priority      WorkspacePriority @default(MEDIUM)
+  status        WorkspaceStatus   @default(DRAFT)
+  notes         String?
+  coverImage    String?
+  createdById   String
+  createdBy     User              @relation("WorkspaceCreator", fields: [createdById], references: [id])
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  // Relations
+  members       WorkspaceMember[]
+  tasks         TodoTask[]
+  activityLogs  ActivityLog[]
+  notifications Notification[]
+
+  @@index([createdById])
+}
+
+model WorkspaceMember {
+  id          String    @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        String    @default("MEMBER") // LEAD or MEMBER
+  addedAt     DateTime  @default(now())
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+}
+
+model TodoTask {
+  id              String     @id @default(cuid())
+  workspaceId     String
+  title           String
+  description     String?
+  referenceLink   String?
+  status          TaskStatus @default(TODO)
+  priority        WorkspacePriority @default(MEDIUM)
+  assigneeId      String?
+  createdById     String
+  dueDate         DateTime?
+  order           Int        @default(0)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  // Relations
+  workspace       Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  assignee        User?        @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  createdBy       User         @relation("TaskCreator", fields: [createdById], references: [id])
+  comments        Comment[]
+  attachments     Attachment[]
+  activityLogs    ActivityLog[]
+  submission      TaskSubmission?
+
+  @@index([workspaceId])
+  @@index([assigneeId])
+  @@index([createdById])
+}
+
+model TaskSubmission {
+  id             String    @id @default(cuid())
+  taskId         String    @unique
+  submittedById  String
+  submissionLink String?
+  note           String?
+  submittedAt    DateTime  @default(now())
+
+  task           TodoTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  submittedBy    User      @relation(fields: [submittedById], references: [id])
+
+  @@index([submittedById])
+}
+
+model Comment {
+  id          String    @id @default(cuid())
+  content     String
+  taskId      String
+  authorId    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  task        TodoTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author      User      @relation(fields: [authorId], references: [id])
+
+  @@index([taskId])
+  @@index([authorId])
+}
+
+model Attachment {
+  id          String    @id @default(cuid())
+  filename    String
+  originalName String
+  mimetype    String
+  size        Int
+  url         String
+  taskId      String
+  uploadedAt  DateTime  @default(now())
+
+  task        TodoTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  type        NotificationType
+  title       String
+  message     String
+  isRead      Boolean          @default(false)
+  recipientId String
+  senderId    String?
+  workspaceId String?
+  taskId      String?
+  metadata    Json?
+  createdAt   DateTime         @default(now())
+
+  recipient   User             @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender      User?            @relation("NotificationSender", fields: [senderId], references: [id])
+  workspace   Workspace?       @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+
+  @@index([recipientId])
+  @@index([senderId])
+  @@index([workspaceId])
+}
+
+model ActivityLog {
+  id          String    @id @default(cuid())
+  action      String
+  description String
+  userId      String
+  workspaceId String?
+  taskId      String?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id])
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  task        TodoTask?  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([workspaceId])
+  @@index([taskId])
+}
