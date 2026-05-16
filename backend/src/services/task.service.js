@@ -188,6 +188,10 @@ export const submitTask = async (taskId, userId, submissionData) => {
       submissionLink,
       note,
       submittedAt: new Date(),
+      status: 'PENDING',
+      approvalNote: null,
+      approvedBy: null,
+      approvedAt: null,
     },
     include: {
       submittedBy: {

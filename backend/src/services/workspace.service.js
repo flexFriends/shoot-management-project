@@ -406,57 +406,66 @@ export const getManagerDashboard = async (managerId) => {
  * Get employee dashboard stats
  */
 export const getEmployeeDashboard = async (employeeId) => {
-  const tasks = await prisma.todoTask.findMany({
-    where: { assigneeId: employeeId },
+  const memberships = await prisma.workspaceMember.findMany({
+    where: { userId: employeeId },
     include: {
-      workspace: { select: { id: true, title: true } },
-      createdBy: { select: { id: true, name: true } },
-      submission: {
-        select: { status: true, submittedAt: true, approvalNote: true },
+      workspace: {
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          shootDate: true,
+          setupType: true,
+          priority: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+          tasks: {
+            select: { id: true },
+          },
+        },
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { addedAt: 'desc' },
   });
 
-  // Calculate stats
-  const stats = {
-    total: tasks.length,
-    pending: tasks.filter((t) => t.status === 'TODO' || t.status === 'ASSIGNED').length,
-    inProgress: tasks.filter((t) => t.status === 'IN_PROGRESS').length,
-    inReview: tasks.filter((t) => t.status === 'IN_REVIEW').length,
-    completed: tasks.filter((t) => t.status === 'COMPLETED').length,
-    rejected: tasks.filter((t) => t.status === 'REJECTED').length,
-    completionRate: tasks.length > 0 
-      ? Math.round((tasks.filter((t) => t.status === 'COMPLETED').length / tasks.length) * 100)
-      : 0,
+  const toDateKey = (value) => {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toISOString().slice(0, 10);
   };
 
-  // Group by workspace
-  const workspaceGroups = {};
-  tasks.forEach((task) => {
-    const wsId = task.workspace.id;
-    if (!workspaceGroups[wsId]) {
-      workspaceGroups[wsId] = {
-        workspaceId: wsId,
-        workspaceName: task.workspace.title,
-        tasks: [],
-      };
-    }
-    workspaceGroups[wsId].tasks.push({
-      id: task.id,
-      title: task.title,
-      status: task.status,
-      priority: task.priority,
-      dueDate: task.dueDate,
-      createdBy: task.createdBy.name,
-      submission: task.submission,
-    });
+  const todayKey = toDateKey(new Date());
+
+  const allocatedWorkspaces = memberships.map((membership) => {
+    const taskCount = membership.workspace.tasks?.length || 0;
+
+    return {
+      id: membership.workspace.id,
+      title: membership.workspace.title,
+      description: membership.workspace.description,
+      shootDate: membership.workspace.shootDate,
+      setupType: membership.workspace.setupType,
+      priority: membership.workspace.priority,
+      status: membership.workspace.status,
+      allocatedAt: membership.addedAt,
+      taskCount,
+    };
   });
+
+  const todayWorkspaces = allocatedWorkspaces.filter((workspace) => toDateKey(workspace.shootDate) === todayKey);
+
+  const stats = {
+    totalAllocatedWorkspaces: allocatedWorkspaces.length,
+    todayActiveWorkspaces: todayWorkspaces.length,
+    allocatedToday: allocatedWorkspaces.filter((workspace) => toDateKey(workspace.allocatedAt) === todayKey).length,
+  };
 
   return {
     stats,
-    workspaces: Object.values(workspaceGroups),
-    recentTasks: tasks.slice(0, 5),
+    todayWorkspaces,
+    allocatedWorkspaces,
   };
 };
 

@@ -115,12 +115,32 @@ export const getWorkspace = async (req, res, next) => {
 export const updateWorkspace = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const validated = updateWorkspaceSchema.parse(req.body);
+    const cleanedBody = Object.entries(req.body).reduce((acc, [key, value]) => {
+      if (value === '') {
+        return acc;
+      }
+
+      if (value !== null && value !== undefined) {
+        if ((key === 'shootDate' || key === 'dueDate') && typeof value === 'string') {
+          if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            acc[key] = `${value}T00:00:00Z`;
+          } else {
+            acc[key] = value;
+          }
+        } else {
+          acc[key] = value;
+        }
+      }
+
+      return acc;
+    }, {});
+
+    const validated = updateWorkspaceSchema.parse(cleanedBody);
 
     const workspace = await workspaceService.getWorkspaceById(id);
 
-    // Only creator or ADMIN can update
-    if (workspace.createdById !== req.user.userId && req.user.role !== 'ADMIN') {
+    // Allow workspace owners, managers, and admins to update
+    if (workspace.createdById !== req.user.userId && req.user.role !== 'ADMIN' && req.user.role !== 'MANAGER') {
       return errorResponse(res, 403, 'Access denied');
     }
 
