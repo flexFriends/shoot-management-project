@@ -32,12 +32,26 @@ enum WorkspaceStatus {
   ARCHIVED
 }
 
+enum WorkspaceSetupType {
+  PREMIUM
+  VERY_PREMIUM
+  PHONE_SETUP
+}
+
 enum TaskStatus {
   TODO
+  ASSIGNED
   IN_PROGRESS
   IN_REVIEW
   COMPLETED
+  REJECTED
   BLOCKED
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum NotificationType {
@@ -73,7 +87,8 @@ model User {
   workspaceMemberships WorkspaceMember[]
   assignedTasks      TodoTask[]          @relation("TaskAssignee")
   createdTasks       TodoTask[]          @relation("TaskCreator")
-  taskSubmissions    TaskSubmission[]
+  taskSubmissions    TaskSubmission[]    @relation("SubmittedTasks")
+  reviewedSubmissions TaskSubmission[]   @relation("ReviewedTasks")
   comments           Comment[]
   notifications      Notification[]      @relation("NotificationRecipient")
   sentNotifications  Notification[]      @relation("NotificationSender")
@@ -87,6 +102,7 @@ model Workspace {
   shootLocation String?
   shootDate     DateTime?
   dueDate       DateTime?
+  setupType     WorkspaceSetupType @default(PREMIUM)
   priority      WorkspacePriority @default(MEDIUM)
   status        WorkspaceStatus   @default(DRAFT)
   notes         String?
@@ -130,6 +146,9 @@ model TodoTask {
   assigneeId      String?
   createdById     String
   dueDate         DateTime?
+  assignedAt      DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
   order           Int        @default(0)
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
@@ -149,17 +168,23 @@ model TodoTask {
 }
 
 model TaskSubmission {
-  id             String    @id @default(cuid())
-  taskId         String    @unique
+  id             String            @id @default(cuid())
+  taskId         String            @unique
   submittedById  String
   submissionLink String?
   note           String?
-  submittedAt    DateTime  @default(now())
+  status         SubmissionStatus  @default(PENDING)
+  approvalNote   String?
+  approvedBy     String?
+  approvedAt     DateTime?
+  submittedAt    DateTime          @default(now())
 
-  task           TodoTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  submittedBy    User      @relation(fields: [submittedById], references: [id])
+  task           TodoTask          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  submittedBy    User              @relation("SubmittedTasks", fields: [submittedById], references: [id])
+  reviewer       User?             @relation("ReviewedTasks", fields: [approvedBy], references: [id])
 
   @@index([submittedById])
+  @@index([approvedBy])
 }
 
 model Comment {

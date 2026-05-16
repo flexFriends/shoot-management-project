@@ -7,6 +7,10 @@ const router = express.Router();
 // All routes require authentication
 router.use(authenticate);
 
+// Dashboard routes
+router.get('/dashboard/manager', workspaceController.getManagerDashboard);
+router.get('/dashboard/employee', workspaceController.getEmployeeDashboard);
+
 // CRUD operations
 router.post('/', authorize('MANAGER', 'ADMIN'), workspaceController.createWorkspace);
 router.get('/', workspaceController.getWorkspaces);

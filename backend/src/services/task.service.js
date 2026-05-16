@@ -321,6 +321,74 @@ export const deleteAttachment = async (attachmentId) => {
   return attachment;
 };
 
+/**
+ * Approve task submission
+ */
+export const approveSubmission = async (taskId, managerId, approvalNote) => {
+  const submission = await prisma.taskSubmission.update({
+    where: { taskId },
+    data: {
+      status: 'APPROVED',
+      approvalNote,
+      approvedBy: managerId,
+      approvedAt: new Date(),
+    },
+    include: {
+      submittedBy: {
+        select: { id: true, name: true, avatar: true, email: true },
+      },
+      reviewer: {
+        select: { id: true, name: true },
+      },
+      task: {
+        select: { id: true, title: true },
+      },
+    },
+  });
+
+  // Update task status to COMPLETED
+  await prisma.todoTask.update({
+    where: { id: taskId },
+    data: { status: 'COMPLETED' },
+  });
+
+  return submission;
+};
+
+/**
+ * Reject task submission
+ */
+export const rejectSubmission = async (taskId, managerId, rejectionReason) => {
+  const submission = await prisma.taskSubmission.update({
+    where: { taskId },
+    data: {
+      status: 'REJECTED',
+      approvalNote: rejectionReason,
+      approvedBy: managerId,
+      approvedAt: new Date(),
+    },
+    include: {
+      submittedBy: {
+        select: { id: true, name: true, avatar: true, email: true },
+      },
+      reviewer: {
+        select: { id: true, name: true },
+      },
+      task: {
+        select: { id: true, title: true },
+      },
+    },
+  });
+
+  // Update task status back to IN_PROGRESS for employee to fix
+  await prisma.todoTask.update({
+    where: { id: taskId },
+    data: { status: 'IN_PROGRESS' },
+  });
+
+  return submission;
+};
+
 export default {
   createTask,
   getWorkspaceTasks,
@@ -335,4 +403,6 @@ export default {
   addAttachment,
   getTaskAttachments,
   deleteAttachment,
+  approveSubmission,
+  rejectSubmission,
 };

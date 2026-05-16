@@ -53,6 +53,12 @@ export const workspaceApi = {
 
   getActivity: (workspaceId, page = 1, limit = 20) =>
     axiosInstance.get(`/workspaces/${workspaceId}/activity?page=${page}&limit=${limit}`),
+
+  getManagerDashboard: () =>
+    axiosInstance.get('/workspaces/dashboard/manager'),
+
+  getEmployeeDashboard: () =>
+    axiosInstance.get('/workspaces/dashboard/employee'),
 };
 
 // Task API
@@ -100,6 +106,12 @@ export const taskApi = {
 
   reorder: (workspaceId, taskIds) =>
     axiosInstance.patch(`/workspaces/${workspaceId}/tasks/reorder`, { taskIds }),
+
+  approve: (workspaceId, taskId, approvalNote) =>
+    axiosInstance.post(`/workspaces/${workspaceId}/tasks/${taskId}/approve`, { approvalNote }),
+
+  reject: (workspaceId, taskId, approvalNote) =>
+    axiosInstance.post(`/workspaces/${workspaceId}/tasks/${taskId}/reject`, { approvalNote }),
 };
 
 export default {

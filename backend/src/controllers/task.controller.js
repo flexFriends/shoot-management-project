@@ -6,8 +6,8 @@ import { isToday } from '../utils/dateHelper.js';
 const createTaskSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   description: z.string().optional(),
-  referenceLink: z.string().optional(),
-  status: z.enum(['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'COMPLETED', 'BLOCKED']).default('TODO'),
+  referenceLink: z.string().url('Reference link must be a valid URL').optional(),
+  status: z.enum(['TODO', 'ASSIGNED', 'IN_PROGRESS', 'IN_REVIEW', 'COMPLETED', 'REJECTED', 'BLOCKED']).default('TODO'),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
   assigneeId: z.string().optional(),
   dueDate: z.string().datetime().optional(),
@@ -370,6 +370,82 @@ export const deleteAttachment = async (req, res, next) => {
   }
 };
 
+/**
+ * Approve task submission (manager)
+ */
+export const approveSubmission = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { approvalNote } = req.body;
+
+    if (!approvalNote || typeof approvalNote !== 'string' || approvalNote.trim() === '') {
+      return errorResponse(res, 400, 'Approval note is required');
+    }
+
+    const task = await taskService.getTaskById(id);
+
+    // Check workspace access - only manager/creator can approve
+    const { prisma } = await import('../config/db.js');
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: task.workspaceId },
+      select: { createdById: true },
+    });
+
+    if (workspace.createdById !== req.user.userId && req.user.role !== 'ADMIN') {
+      return errorResponse(res, 403, 'Access denied - only manager can approve');
+    }
+
+    const result = await taskService.approveSubmission(id, req.user.userId, approvalNote);
+    return successResponse(res, 200, result, 'Task submission approved successfully');
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return errorResponse(res, 400, 'Validation error', error.errors);
+    }
+    if (error.message.includes('not found')) {
+      return errorResponse(res, 404, error.message);
+    }
+    return errorResponse(res, 500, error.message);
+  }
+};
+
+/**
+ * Reject task submission (manager)
+ */
+export const rejectSubmission = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { approvalNote } = req.body;
+
+    if (!approvalNote || typeof approvalNote !== 'string' || approvalNote.trim() === '') {
+      return errorResponse(res, 400, 'Rejection reason is required');
+    }
+
+    const task = await taskService.getTaskById(id);
+
+    // Check workspace access - only manager/creator can reject
+    const { prisma } = await import('../config/db.js');
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: task.workspaceId },
+      select: { createdById: true },
+    });
+
+    if (workspace.createdById !== req.user.userId && req.user.role !== 'ADMIN') {
+      return errorResponse(res, 403, 'Access denied - only manager can reject');
+    }
+
+    const result = await taskService.rejectSubmission(id, req.user.userId, approvalNote);
+    return successResponse(res, 200, result, 'Task submission rejected successfully');
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return errorResponse(res, 400, 'Validation error', error.errors);
+    }
+    if (error.message.includes('not found')) {
+      return errorResponse(res, 404, error.message);
+    }
+    return errorResponse(res, 500, error.message);
+  }
+};
+
 export default {
   createTask,
   getTasks,
@@ -384,4 +460,6 @@ export default {
   addAttachment,
   getAttachments,
   deleteAttachment,
+  approveSubmission,
+  rejectSubmission,
 };

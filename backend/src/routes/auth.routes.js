@@ -12,8 +12,10 @@ router.post('/register', authController.register);
 router.get('/me', authenticate, authController.getCurrentUser);
 router.put('/profile', authenticate, authController.updateProfile);
 
-// Admin routes
-router.get('/users', authenticate, authorize('ADMIN'), authController.getAllUsers);
+// Admin & Manager routes (Manager needs to view employees to add them to workspaces)
+router.get('/users', authenticate, authorize('ADMIN', 'MANAGER'), authController.getAllUsers);
+
+// Admin routes only
 router.patch('/users/:userId/deactivate', authenticate, authorize('ADMIN'), authController.deactivateUser);
 router.patch('/users/:userId/role', authenticate, authorize('ADMIN'), authController.changeUserRole);
 

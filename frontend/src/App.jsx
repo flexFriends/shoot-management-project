@@ -12,9 +12,11 @@ import Workspaces from './pages/Workspaces.jsx';
 import WorkspaceDetail from './pages/WorkspaceDetail.jsx';
 import CreateWorkspace from './pages/CreateWorkspace.jsx';
 import TaskDetail from './pages/TaskDetail.jsx';
+import Tasks from './pages/Tasks.jsx';
 
 // Components
 import PrivateRoute from './components/common/PrivateRoute.jsx';
+import RoleGuard from './components/common/RoleGuard.jsx';
 
 const queryClient = new QueryClient();
 
@@ -66,9 +68,16 @@ function App() {
             path="/workspaces/create"
             element={
               <PrivateRoute>
-                <CreateWorkspace />
+                <RoleGuard allowedRoles={['MANAGER', 'ADMIN']} fallback={<Navigate to="/dashboard" replace />}>
+                  <CreateWorkspace />
+                </RoleGuard>
               </PrivateRoute>
             }
+          />
+
+          <Route
+            path="/create-workspace"
+            element={<Navigate to="/workspaces/create" replace />}
           />
 
           <Route
@@ -85,6 +94,15 @@ function App() {
             element={
               <PrivateRoute>
                 <TaskDetail />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/tasks"
+            element={
+              <PrivateRoute>
+                <Tasks />
               </PrivateRoute>
             }
           />

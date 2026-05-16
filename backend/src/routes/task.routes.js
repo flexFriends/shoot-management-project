@@ -19,6 +19,10 @@ router.delete('/:id', authorize('MANAGER', 'ADMIN'), taskController.deleteTask);
 router.post('/:id/submit', taskController.submitTask);
 router.get('/:id/submission', taskController.getSubmission);
 
+// Task submission approval/rejection (manager)
+router.post('/:id/approve', authorize('MANAGER', 'ADMIN'), taskController.approveSubmission);
+router.post('/:id/reject', authorize('MANAGER', 'ADMIN'), taskController.rejectSubmission);
+
 // Comments
 router.post('/:id/comments', taskController.addComment);
 router.get('/:id/comments', taskController.getComments);

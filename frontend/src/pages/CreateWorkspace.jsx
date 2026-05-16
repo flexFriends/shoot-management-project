@@ -5,12 +5,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { workspaceApi } from '../api/index.js';
+import Sidebar from '../components/layout/Sidebar.jsx';
 
 const createWorkspaceSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   description: z.string().optional(),
   shootLocation: z.string().optional(),
   shootDate: z.string().optional(),
+  setupType: z.enum(['PREMIUM', 'VERY_PREMIUM', 'PHONE_SETUP']),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
   status: z.enum(['DRAFT', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED']).default('DRAFT'),
   notes: z.string().optional(),
@@ -46,27 +48,22 @@ export default function CreateWorkspace() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-4xl mx-auto px-6 py-4">
-          <div className="flex items-center gap-4 mb-2">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              ← Back
-            </button>
-            <h1 className="text-3xl font-bold text-gray-900">Create New Workspace</h1>
-          </div>
-          <p className="text-gray-600">Set up a new project workspace for your team</p>
-        </div>
-      </header>
+    <div className="flex h-screen bg-gray-100">
+      {/* Sidebar Navigation */}
+      <Sidebar />
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-6 py-8">
-        <div className="bg-white rounded-lg shadow p-8">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <main className="flex-1 ml-64 overflow-auto">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-gray-900">Create New Workspace 🏢</h1>
+            <p className="text-gray-600 mt-2">Set up a new project workspace for your team</p>
+          </div>
+
+          {/* Main Content */}
+          <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Basic Info */}
             <div className="border-b pb-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
@@ -128,6 +125,24 @@ export default function CreateWorkspace() {
                     {...register('shootDate')}
                   />
                 </div>
+              </div>
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Setup Type *
+                </label>
+                <select
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  {...register('setupType')}
+                >
+                  <option value="">Select setup type</option>
+                  <option value="PREMIUM">Premium</option>
+                  <option value="VERY_PREMIUM">Very Premium</option>
+                  <option value="PHONE_SETUP">Phone Setup</option>
+                </select>
+                {errors.setupType && (
+                  <p className="text-red-500 text-sm mt-1">{errors.setupType.message}</p>
+                )}
               </div>
             </div>
 
@@ -203,6 +218,7 @@ export default function CreateWorkspace() {
               </button>
             </div>
           </form>
+          </div>
         </div>
       </main>
     </div>

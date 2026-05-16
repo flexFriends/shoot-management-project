@@ -7,6 +7,7 @@ const createWorkspaceSchema = z.object({
   description: z.string().nullable().optional(),
   shootLocation: z.string().nullable().optional(),
   shootDate: z.string().nullable().optional(),
+  setupType: z.enum(['PREMIUM', 'VERY_PREMIUM', 'PHONE_SETUP']),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
   status: z.enum(['DRAFT', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED']).default('DRAFT'),
   notes: z.string().nullable().optional(),
@@ -175,8 +176,8 @@ export const addMember = async (req, res, next) => {
       return errorResponse(res, 403, 'Access denied');
     }
 
-    const member = await workspaceService.addWorkspaceMember(id, userId, role);
-    return successResponse(res, 201, member, 'Member added successfully');
+    const result = await workspaceService.addWorkspaceMember(id, userId, role);
+    return successResponse(res, 201, result, 'Member added successfully');
   } catch (error) {
     if (error.message.includes('Unique constraint')) {
       return errorResponse(res, 409, 'Member already in workspace');
@@ -237,6 +238,30 @@ export const getActivity = async (req, res, next) => {
   }
 };
 
+/**
+ * Get manager dashboard stats
+ */
+export const getManagerDashboard = async (req, res, next) => {
+  try {
+    const result = await workspaceService.getManagerDashboard(req.user.userId);
+    return successResponse(res, 200, result, 'Manager dashboard fetched successfully');
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+
+/**
+ * Get employee dashboard stats
+ */
+export const getEmployeeDashboard = async (req, res, next) => {
+  try {
+    const result = await workspaceService.getEmployeeDashboard(req.user.userId);
+    return successResponse(res, 200, result, 'Employee dashboard fetched successfully');
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+
 export default {
   createWorkspace,
   getWorkspaces,
@@ -246,4 +271,6 @@ export default {
   addMember,
   removeMember,
   getActivity,
+  getManagerDashboard,
+  getEmployeeDashboard,
 };
