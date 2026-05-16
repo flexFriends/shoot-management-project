@@ -1,9 +1,9 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore.js';
-import { workspaceApi } from '../api/index.js';
-import Sidebar from '../components/layout/Sidebar.jsx';
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuthStore } from "../store/authStore.js";
+import { workspaceApi } from "../api/index.js";
+import Sidebar from "../components/layout/Sidebar.jsx";
 
 const toDateOnly = (dateValue) => {
   if (!dateValue) return null;
@@ -14,35 +14,39 @@ const toDateOnly = (dateValue) => {
 };
 
 const getDisplayWorkspaceStatus = (workspace) => {
-  if (!workspace) return 'DRAFT';
+  if (!workspace) return "DRAFT";
 
-  if (workspace.status === 'COMPLETED' || workspace.status === 'ARCHIVED' || workspace.status === 'IN_PROGRESS') {
+  if (
+    workspace.status === "COMPLETED" ||
+    workspace.status === "ARCHIVED" ||
+    workspace.status === "IN_PROGRESS"
+  ) {
     return workspace.status;
   }
 
   const shootDate = toDateOnly(workspace.shootDate);
-  if (!shootDate) return workspace.status || 'DRAFT';
+  if (!shootDate) return workspace.status || "DRAFT";
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  return shootDate <= today ? 'ACTIVE' : 'DRAFT';
+  return shootDate <= today ? "ACTIVE" : "DRAFT";
 };
 
 const getStatusBadgeClasses = (status) => {
   switch (status) {
-    case 'ACTIVE':
-      return 'bg-green-100 text-green-800';
-    case 'DRAFT':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'IN_PROGRESS':
-      return 'bg-blue-100 text-blue-800';
-    case 'COMPLETED':
-      return 'bg-emerald-100 text-emerald-800';
-    case 'ARCHIVED':
-      return 'bg-gray-100 text-gray-800';
+    case "ACTIVE":
+      return "bg-green-100 text-green-800";
+    case "DRAFT":
+      return "bg-yellow-100 text-yellow-800";
+    case "IN_PROGRESS":
+      return "bg-blue-100 text-blue-800";
+    case "COMPLETED":
+      return "bg-emerald-100 text-emerald-800";
+    case "ARCHIVED":
+      return "bg-gray-100 text-gray-800";
     default:
-      return 'bg-slate-100 text-slate-800';
+      return "bg-slate-100 text-slate-800";
   }
 };
 
@@ -50,14 +54,14 @@ export default function Workspaces() {
   const navigate = useNavigate();
   const location = useLocation();
   const user = useAuthStore((state) => state.user);
-  const isManager = user?.role === 'MANAGER' || user?.role === 'ADMIN';
+  const isManager = user?.role === "MANAGER" || user?.role === "ADMIN";
 
   const handleCreateWorkspace = () => {
-    navigate('/workspaces/create');
+    navigate("/workspaces/create");
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ['workspaces'],
+    queryKey: ["workspaces"],
     queryFn: async () => {
       const response = await workspaceApi.getAll();
       return response.data.data;
@@ -65,14 +69,18 @@ export default function Workspaces() {
   });
 
   const searchParams = new URLSearchParams(location.search);
-  const statusFilter = searchParams.get('status') || null;
+  const statusFilter = searchParams.get("status") || null;
 
   const formatCreatedDate = (dateValue) => {
-    if (!dateValue) return '';
+    if (!dateValue) return "";
     try {
-      return new Date(dateValue).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      return new Date(dateValue).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
     } catch (e) {
-      return '';
+      return "";
     }
   };
 
@@ -88,7 +96,9 @@ export default function Workspaces() {
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold text-gray-900">Shoots </h1>
-              <p className="text-gray-600 mt-2">Manage your studios and projects</p>
+              <p className="text-gray-600 mt-2">
+                Manage your studios and projects
+              </p>
             </div>
             {isManager && (
               <button
@@ -110,18 +120,24 @@ export default function Workspaces() {
           ) : (
             (() => {
               const all = data?.workspaces || [];
-              const filtered = statusFilter ? all.filter((ws) => getDisplayWorkspaceStatus(ws) === statusFilter) : all;
+              const filtered = statusFilter
+                ? all.filter(
+                    (ws) => getDisplayWorkspaceStatus(ws) === statusFilter,
+                  )
+                : all;
 
               if (filtered.length === 0) {
                 return (
                   <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-                    <p className="text-gray-600 text-lg">No workspaces{statusFilter ? ` for ${statusFilter}` : ''}.</p>
+                    <p className="text-gray-600 text-lg">
+                      No workspaces{statusFilter ? ` for ${statusFilter}` : ""}.
+                    </p>
                     {isManager && (
                       <button
                         onClick={handleCreateWorkspace}
                         className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
                       >
-                        Create Workspace
+                        Create Shoot
                       </button>
                     )}
                   </div>
@@ -132,9 +148,14 @@ export default function Workspaces() {
                 <div>
                   {statusFilter && (
                     <div className="mb-4 flex items-center gap-4">
-                      <div className="text-sm text-gray-600">Filter: <span className="font-semibold text-gray-900">{statusFilter}</span></div>
+                      <div className="text-sm text-gray-600">
+                        Filter:{" "}
+                        <span className="font-semibold text-gray-900">
+                          {statusFilter}
+                        </span>
+                      </div>
                       <button
-                        onClick={() => navigate('/workspaces')}
+                        onClick={() => navigate("/workspaces")}
                         className="text-sm px-3 py-1 bg-slate-100 rounded-md text-slate-700 hover:bg-slate-200"
                       >
                         Clear filter
@@ -146,8 +167,15 @@ export default function Workspaces() {
                     {filtered.map((ws) => {
                       const displayStatus = getDisplayWorkspaceStatus(ws);
                       const totalTasks = ws.tasks?.length || ws.taskCount || 0;
-                      const completedTasks = ws.tasks?.filter((task) => task.status === 'COMPLETED').length || ws.completedTaskCount || 0;
-                      const pendingTasks = Math.max(totalTasks - completedTasks, 0);
+                      const completedTasks =
+                        ws.tasks?.filter((task) => task.status === "COMPLETED")
+                          .length ||
+                        ws.completedTaskCount ||
+                        0;
+                      const pendingTasks = Math.max(
+                        totalTasks - completedTasks,
+                        0,
+                      );
 
                       return (
                         <div
@@ -160,7 +188,9 @@ export default function Workspaces() {
                               🎬
                             </div>
                             <div className="flex flex-col items-end gap-2">
-                              <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClasses(displayStatus)}`}>
+                              <span
+                                className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClasses(displayStatus)}`}
+                              >
                                 {displayStatus}
                               </span>
                               <div className="flex items-center gap-1.5">
@@ -179,16 +209,29 @@ export default function Workspaces() {
                           <h3 className="font-bold text-lg text-gray-900 group-hover:text-indigo-600 transition">
                             {ws.title}
                           </h3>
-                          <p className="text-gray-600 text-sm mt-2 line-clamp-2">{ws.description}</p>
+                          <p className="text-gray-600 text-sm mt-2 line-clamp-2">
+                            {ws.description}
+                          </p>
                           <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
                             <span className="text-xs text-gray-500">
-                              <span className="font-semibold text-gray-900">{ws.members?.length || 0}</span> members
+                              <span className="font-semibold text-gray-900">
+                                {ws.members?.length || 0}
+                              </span>{" "}
+                              members
                             </span>
                             <div className="text-right">
                               <div className="text-xs text-gray-500">
-                                <span className="font-semibold text-gray-900">{totalTasks}</span> tasks
+                                <span className="font-semibold text-gray-900">
+                                  {totalTasks}
+                                </span>{" "}
+                                tasks
                               </div>
-                              <div className="text-xs text-gray-400 mt-1">Created: <span className="font-medium text-gray-700">{formatCreatedDate(ws.createdAt)}</span></div>
+                              <div className="text-xs text-gray-400 mt-1">
+                                Shoot Date:{" "}
+                                <span className="font-medium text-gray-700">
+                                  {formatCreatedDate(ws.shootDate)}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>

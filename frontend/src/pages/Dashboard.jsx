@@ -26,12 +26,13 @@ export default function Dashboard() {
   const isHR = user.role === 'HR';
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
       {/* Sidebar Navigation */}
       <Sidebar />
 
       {/* Main Content Area */}
-      <main className="flex-1 ml-64 overflow-auto">
+      {/* FIX: Set margin-left to 0 on mobile, and 64 on desktop. Add top padding on mobile for the header. */}
+      <main className="flex-1 ml-0 md:ml-64 pt-16 md:pt-0 overflow-auto transition-all duration-300">
         {isManager && <ManagerDashboard />}
         {isEmployee && <EmployeeDashboard />}
         {isHR && <HRDashboard />}
