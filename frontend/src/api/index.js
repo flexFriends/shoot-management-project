@@ -3,20 +3,20 @@ import axiosInstance from './axios.js';
 // Auth API
 export const authApi = {
   login: (email, password) =>
-    axiosInstance.post('/auth/login', { email, password }),
+    axiosInstance.post('/api/auth/login', { email, password }),
 
   register: (data) =>
-    axiosInstance.post('/auth/register', data),
+    axiosInstance.post('/api/auth/register', data),
 
   // HR/Admin create user
   createUser: (data) =>
-    axiosInstance.post('/auth/users', data),
+    axiosInstance.post('/api/auth/users', data),
 
   getCurrentUser: () =>
-    axiosInstance.get('/auth/me'),
+    axiosInstance.get('/api/auth/me'),
 
   updateProfile: (data) =>
-    axiosInstance.put('/auth/profile', data),
+    axiosInstance.put('/api/auth/profile', data),
 
   // Admin only
   getAllUsers: (page = 1, limit = 20) =>
