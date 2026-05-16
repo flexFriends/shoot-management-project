@@ -115,7 +115,7 @@ export default function Tasks() {
             </h1>
             <p className="text-gray-600 mt-2">
               {isManager
-                ? 'View and manage all tasks across your workspaces'
+                ? 'View and manage all tasks across your shoots'
                 : 'Your assigned tasks and their status'}
             </p>
           </div>

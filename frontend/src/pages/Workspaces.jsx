@@ -87,7 +87,7 @@ export default function Workspaces() {
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900">Workspaces 🏢</h1>
+              <h1 className="text-4xl font-bold text-gray-900">Shoots </h1>
               <p className="text-gray-600 mt-2">Manage your studios and projects</p>
             </div>
             {isManager && (
@@ -96,7 +96,7 @@ export default function Workspaces() {
                 className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium flex items-center gap-2"
               >
                 <span>+</span>
-                <span>New Workspace</span>
+                <span>New Shoot</span>
               </button>
             )}
           </div>

@@ -66,11 +66,11 @@ export default function Sidebar({ onNavigate }) {
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 mb-2 mt-4">Manager</p>
             <Link to="/workspaces" className={menuItemClass('/workspaces')}>
               <span className="text-lg">🏢</span>
-              <span>Workspaces</span>
+              <span>Shoots</span>
             </Link>
             <Link to="/workspaces/create" className={menuItemClass('/workspaces/create')}>
               <span className="text-lg">➕</span>
-              <span>New Workspace</span>
+              <span>New Shoot</span>
             </Link>
             <Link to="/tasks" className={menuItemClass('/tasks')}>
               <span className="text-lg">✅</span>
@@ -85,7 +85,7 @@ export default function Sidebar({ onNavigate }) {
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 mb-2 mt-4">Work</p>
             <Link to="/workspaces" className={menuItemClass('/workspaces')}>
               <span className="text-lg">🏢</span>
-              <span>My Workspaces</span>
+              <span>My Shoots</span>
             </Link>
             <Link to="/tasks" className={menuItemClass('/tasks')}>
               <span className="text-lg">📝</span>

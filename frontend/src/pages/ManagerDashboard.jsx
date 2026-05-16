@@ -153,29 +153,29 @@ export default function ManagerDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900">Welcome, {user?.name}! 👋</h1>
+        <h1 className="text-4xl font-bold text-gray-900">Welcome, {user?.name}! </h1>
         <p className="text-gray-600 mt-2">Here's your team's task performance at a glance</p>
       </div>
 
       {/* Main Content */}
       <div>
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Workspace Snapshot</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Shoots Snapshot</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <StatCard
-              label="Total Workspaces"
+              label="Total Shoots"
               value={workspaceStatusStats.total}
               color="slate"
               onClick={() => navigate('/workspaces')}
             />
             <StatCard
-              label="Active Workspaces"
+              label="Active Shoots"
               value={workspaceStatusStats.active}
               color="green"
               onClick={() => navigate('/workspaces?status=ACTIVE')}
             />
             <StatCard
-              label="Workspaces in Draft"
+              label="Shoots in Draft"
               value={workspaceStatusStats.draft}
               color="yellow"
               onClick={() => navigate('/workspaces?status=DRAFT')}
