@@ -54,6 +54,28 @@ export const register = async (req, res, next) => {
 };
 
 /**
+ * Create user (Admin or HR)
+ */
+export const createUser = async (req, res, next) => {
+  try {
+    const validated = registerSchema.parse(req.body);
+
+    // If requester is HR, prevent creating ADMIN or HR accounts
+    if (req.user.role === 'HR' && validated.role && (validated.role === 'ADMIN' || validated.role === 'HR')) {
+      return errorResponse(res, 403, 'HR cannot create ADMIN or HR users');
+    }
+
+    const user = await authService.registerUser(validated);
+    return successResponse(res, 201, user, 'User created successfully');
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return errorResponse(res, 400, 'Validation error', error.errors);
+    }
+    return errorResponse(res, 400, error.message);
+  }
+};
+
+/**
  * Get current user
  */
 export const getCurrentUser = async (req, res, next) => {
@@ -109,11 +131,31 @@ export const getAllUsers = async (req, res, next) => {
 };
 
 /**
+ * HR dashboard: counts of managers and employees
+ */
+export const getHRDashboard = async (req, res, next) => {
+  try {
+    const counts = await authService.getRoleCounts();
+    return successResponse(res, 200, counts, 'HR dashboard fetched');
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+
+/**
  * Deactivate user (Admin only)
  */
 export const deactivateUser = async (req, res, next) => {
   try {
     const { userId } = req.params;
+    // Prevent HR from deactivating ADMIN or HR accounts
+    if (req.user.role === 'HR') {
+      const target = await authService.getUserById(userId);
+      if (target.role === 'ADMIN' || target.role === 'HR') {
+        return errorResponse(res, 403, 'HR cannot deactivate ADMIN or HR users');
+      }
+    }
+
     const user = await authService.deactivateUser(userId);
     return successResponse(res, 200, user, 'User deactivated successfully');
   } catch (error) {
@@ -134,6 +176,17 @@ export const changeUserRole = async (req, res, next) => {
       return errorResponse(res, 400, 'Invalid role');
     }
 
+    // If requester is HR, disallow setting role to ADMIN or HR and disallow changing ADMIN/HR users
+    if (req.user.role === 'HR') {
+      if (role === 'ADMIN' || role === 'HR') {
+        return errorResponse(res, 403, 'HR cannot assign ADMIN or HR roles');
+      }
+      const target = await authService.getUserById(userId);
+      if (target.role === 'ADMIN' || target.role === 'HR') {
+        return errorResponse(res, 403, 'HR cannot modify ADMIN or HR users');
+      }
+    }
+
     const user = await authService.changeUserRole(userId, role);
     return successResponse(res, 200, user, 'User role updated successfully');
   } catch (error) {
@@ -144,9 +197,11 @@ export const changeUserRole = async (req, res, next) => {
 export default {
   login,
   register,
+  createUser,
   getCurrentUser,
   updateProfile,
   getAllUsers,
+  getHRDashboard,
   deactivateUser,
   changeUserRole,
 };

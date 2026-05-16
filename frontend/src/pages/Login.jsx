@@ -103,6 +103,7 @@ export default function Login() {
           <div className="space-y-1 text-xs text-gray-600">
             <p><strong>Admin:</strong> admin@studio.com / Admin@123</p>
             <p><strong>Manager:</strong> manager1@studio.com / Manager@123</p>
+            <p><strong>HR:</strong> hr1@studio.com / HR@123</p>
             <p><strong>Employee:</strong> emp1@studio.com / Emp@123</p>
           </div>
         </div>

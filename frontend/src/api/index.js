@@ -8,6 +8,10 @@ export const authApi = {
   register: (data) =>
     axiosInstance.post('/auth/register', data),
 
+  // HR/Admin create user
+  createUser: (data) =>
+    axiosInstance.post('/auth/users', data),
+
   getCurrentUser: () =>
     axiosInstance.get('/auth/me'),
 
@@ -17,6 +21,9 @@ export const authApi = {
   // Admin only
   getAllUsers: (page = 1, limit = 20) =>
     axiosInstance.get(`/auth/users?page=${page}&limit=${limit}`),
+
+  getHRDashboard: () =>
+    axiosInstance.get('/auth/hr-dashboard'),
 
   deactivateUser: (userId) =>
     axiosInstance.patch(`/auth/users/${userId}/deactivate`),

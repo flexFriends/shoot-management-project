@@ -174,6 +174,26 @@ export const getAllUsers = async (page = 1, limit = 20) => {
 };
 
 /**
+ * Get counts of users by role for HR dashboard
+ */
+export const getRoleCounts = async () => {
+  const [managers, employees, hrs, admins] = await Promise.all([
+    prisma.user.count({ where: { role: 'MANAGER' } }),
+    prisma.user.count({ where: { role: 'EMPLOYEE' } }),
+    prisma.user.count({ where: { role: 'HR' } }),
+    prisma.user.count({ where: { role: 'ADMIN' } }),
+  ]);
+
+  return {
+    managers,
+    employees,
+    hrs,
+    admins,
+    total: managers + employees + hrs + admins,
+  };
+};
+
+/**
  * Deactivate user
  */
 export const deactivateUser = async (userId) => {

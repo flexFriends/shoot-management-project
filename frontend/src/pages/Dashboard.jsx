@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore.js';
 import Sidebar from '../components/layout/Sidebar.jsx';
 import ManagerDashboard from './ManagerDashboard.jsx';
 import EmployeeDashboard from './EmployeeDashboard.jsx';
+import HRDashboard from './HRDashboard.jsx';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ export default function Dashboard() {
   // Route based on user role
   const isManager = user.role === 'MANAGER' || user.role === 'ADMIN';
   const isEmployee = user.role === 'EMPLOYEE';
+  const isHR = user.role === 'HR';
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -32,6 +34,7 @@ export default function Dashboard() {
       <main className="flex-1 ml-64 overflow-auto">
         {isManager && <ManagerDashboard />}
         {isEmployee && <EmployeeDashboard />}
+        {isHR && <HRDashboard />}
       </main>
     </div>
   );

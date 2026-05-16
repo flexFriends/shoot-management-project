@@ -14,6 +14,7 @@ import WorkspaceEdit from './pages/WorkspaceEdit.jsx';
 import CreateWorkspace from './pages/CreateWorkspace.jsx';
 import TaskDetail from './pages/TaskDetail.jsx';
 import Tasks from './pages/Tasks.jsx';
+import ManageUsers from './pages/ManageUsers.jsx';
 
 // Components
 import PrivateRoute from './components/common/PrivateRoute.jsx';
@@ -96,6 +97,17 @@ function App() {
               <PrivateRoute>
                 <RoleGuard allowedRoles={['MANAGER', 'ADMIN']} fallback={<Navigate to="/dashboard" replace />}>
                   <WorkspaceEdit />
+                </RoleGuard>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/users"
+            element={
+              <PrivateRoute>
+                <RoleGuard allowedRoles={["HR", "ADMIN"]} fallback={<Navigate to="/dashboard" replace />}>
+                  <ManageUsers />
                 </RoleGuard>
               </PrivateRoute>
             }
