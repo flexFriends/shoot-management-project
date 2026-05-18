@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import * as authService from '../services/auth.service.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
+import { notifyManagerOnLogin } from '../utils/taskReminderScheduler.js';
 
 // Validation schemas
 const loginSchema = z.object({
@@ -13,6 +14,7 @@ const registerSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
   name: z.string().min(2, 'Name must be at least 2 characters'),
   role: z.enum(['ADMIN', 'HR', 'MANAGER', 'EMPLOYEE']).optional(),
+  managerId: z.string().optional(), // For assigning employees to managers
 });
 
 const updateUserSchema = z.object({
@@ -28,6 +30,17 @@ export const login = async (req, res, next) => {
   try {
     const validated = loginSchema.parse(req.body);
     const result = await authService.loginUser(validated.email, validated.password);
+    
+    // Check if manager and notify about unassigned tasks
+    if (result.user.role === 'MANAGER') {
+      try {
+        await notifyManagerOnLogin(result.user.id);
+      } catch (notificationError) {
+        console.error('Failed to send login notification:', notificationError.message);
+        // Don't fail the login, just log the error
+      }
+    }
+    
     return successResponse(res, 200, result, 'Login successful');
   } catch (error) {
     if (error instanceof z.ZodError) {

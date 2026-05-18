@@ -6,7 +6,7 @@ import { prisma } from '../config/db.js';
  * Register a new user
  */
 export const registerUser = async (userData) => {
-  const { email, name, password, role } = userData;
+  const { email, name, password, role, managerId } = userData;
 
   // Check if user exists
   const existingUser = await prisma.user.findUnique({
@@ -20,13 +20,14 @@ export const registerUser = async (userData) => {
   // Hash password
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Create user
+  // Create user with optional manager assignment
   const user = await prisma.user.create({
     data: {
       email,
       name,
       password: hashedPassword,
       role: role || 'EMPLOYEE',
+      managerId: managerId || null, // Assign to manager if provided
     },
     select: {
       id: true,
@@ -36,6 +37,7 @@ export const registerUser = async (userData) => {
       avatar: true,
       phone: true,
       isActive: true,
+      managerId: true,
       createdAt: true,
     },
   });

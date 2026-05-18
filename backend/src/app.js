@@ -10,6 +10,7 @@ import errorHandler from './middleware/errorHandler.js';
 import authRoutes from './routes/auth.routes.js';
 import workspaceRoutes from './routes/workspace.routes.js';
 import taskRoutes from './routes/task.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -19,8 +20,12 @@ app.use(helmet());
 
 // CORS configuration
 const allowedOrigins = [
+  'http://localhost:5173',
   'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:5176',
   'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
   'https://we-promote-shoots-tje8.onrender.com',
   'https://shoot-management.vercel.app',
 ];
@@ -44,14 +49,20 @@ app.use(
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // 1000 requests per 15 minutes (good for multi-user polling)
   message: 'Too many requests from this IP',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for health checks and notifications (frequent polling)
+    return req.path === '/api/health' || req.path.includes('/notifications');
+  },
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 15,
+  max: 15, // 15 login attempts per 15 minutes
   message: 'Too many login attempts',
   standardHeaders: true,
   legacyHeaders: false,
@@ -79,6 +90,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/workspaces', workspaceRoutes);
 app.use('/api/workspaces/:workspaceId/tasks', taskRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // 404 handler
 app.use((req, res) => {

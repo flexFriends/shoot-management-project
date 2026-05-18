@@ -13,8 +13,13 @@ npm run dev
 ```
 
 Seeded users (development):
-- manager1@studio.com / Manager@123
-- emp1@studio.com / Emp@123
+- jasdeepsinghop@gmail.com / Manager@123
+- ri00099g@gmail.com / Emp@123
+- ri00089g@gmail.com / Emp@123
+- riteshsharna148@gmail.com / Emp@123
+- riisharma0014@gmail.com / Emp@123
+
+Seeded demo tasks are created without assignees so employees start with no pre-assigned work.
 
 API highlights
 - POST /api/auth/login { email, password } → returns accessToken and sets httpOnly refresh cookie

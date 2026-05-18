@@ -56,6 +56,12 @@ enum SubmissionStatus {
 
 enum NotificationType {
   TASK_ASSIGNED
+  TASK_SUBMITTED
+  TASK_APPROVED
+  TASK_REJECTED
+  TASK_REMINDER_MANAGER
+  TASK_REMINDER_HR
+  TASK_REMINDER_ADMIN
   TASK_UPDATED
   TASK_COMMENTED
   WORKSPACE_CREATED
@@ -81,6 +87,11 @@ model User {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   lastLoginAt       DateTime?
+  
+  // Manager assignment (for EMPLOYEE role)
+  managerId         String?
+  manager           User?          @relation("ManagerToEmployee", fields: [managerId], references: [id])
+  subordinates      User[]         @relation("ManagerToEmployee")
 
   // Relations
   createdWorkspaces  Workspace[]         @relation("WorkspaceCreator")
@@ -160,6 +171,7 @@ model TodoTask {
   comments        Comment[]
   attachments     Attachment[]
   activityLogs    ActivityLog[]
+  notifications   Notification[]
   submission      TaskSubmission?
 
   @@index([workspaceId])
@@ -219,19 +231,20 @@ model Attachment {
 
 model Notification {
   id          String           @id @default(cuid())
-  type        NotificationType
-  title       String
-  message     String
-  isRead      Boolean          @default(false)
   recipientId String
   senderId    String?
-  workspaceId String?
+  type        NotificationType
+  message     String
   taskId      String?
-  metadata    Json?
+  isRead      Boolean          @default(false)
   createdAt   DateTime         @default(now())
+  title       String?
+  workspaceId String?
+  metadata    Json?
 
   recipient   User             @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
-  sender      User?            @relation("NotificationSender", fields: [senderId], references: [id])
+  sender      User?            @relation("NotificationSender", fields: [senderId], references: [id], onDelete: SetNull)
+  task        TodoTask?        @relation(fields: [taskId], references: [id], onDelete: SetNull)
   workspace   Workspace?       @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
 
   @@index([recipientId])

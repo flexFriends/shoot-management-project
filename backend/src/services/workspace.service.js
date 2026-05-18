@@ -332,8 +332,11 @@ export const getManagerDashboard = async (managerId) => {
       tasks: {
         select: {
           id: true,
+          title: true,
           status: true,
-          assignee: { select: { id: true, name: true, email: true } },
+          priority: true,
+          dueDate: true,
+          assignee: { select: { id: true, name: true, email: true, avatar: true } },
         },
       },
       members: {
@@ -345,9 +348,37 @@ export const getManagerDashboard = async (managerId) => {
     },
   });
 
+  // Query all active employees globally in the organization
+  const activeEmployees = await prisma.user.findMany({
+    where: {
+      role: 'EMPLOYEE',
+      isActive: true,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  });
+
   // Aggregate task stats by employee
   const employeeStats = {};
-  
+
+  // Pre-populate with all active employees
+  activeEmployees.forEach((emp) => {
+    employeeStats[emp.id] = {
+      id: emp.id,
+      name: emp.name,
+      email: emp.email,
+      total: 0,
+      assigned: 0,
+      inProgress: 0,
+      inReview: 0,
+      completed: 0,
+      rejected: 0,
+    };
+  });
+
   workspaces.forEach((workspace) => {
     workspace.tasks.forEach((task) => {
       if (task.assignee) {
@@ -386,7 +417,7 @@ export const getManagerDashboard = async (managerId) => {
     inReview: allTasks.filter((t) => t.status === 'IN_REVIEW').length,
     completed: allTasks.filter((t) => t.status === 'COMPLETED').length,
     rejected: allTasks.filter((t) => t.status === 'REJECTED').length,
-    completionRate: allTasks.length > 0 
+    completionRate: allTasks.length > 0
       ? Math.round((allTasks.filter((t) => t.status === 'COMPLETED').length / allTasks.length) * 100)
       : 0,
   };
@@ -398,6 +429,14 @@ export const getManagerDashboard = async (managerId) => {
       id: w.id,
       title: w.title,
       taskCount: w.tasks.length,
+      tasks: w.tasks.map((task) => ({
+        id: task.id,
+        title: task.title,
+        status: task.status,
+        priority: task.priority,
+        dueDate: task.dueDate,
+        assignee: task.assignee,
+      })),
     })),
   };
 };
