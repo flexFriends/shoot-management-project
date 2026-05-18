@@ -348,17 +348,19 @@ export const getManagerDashboard = async (managerId) => {
     },
   });
 
-  // Query all active employees globally in the organization
+  // Query active employees who report to this manager only
   const activeEmployees = await prisma.user.findMany({
     where: {
       role: 'EMPLOYEE',
       isActive: true,
+      managerId: managerId,
     },
     select: {
       id: true,
       name: true,
       email: true,
     },
+    orderBy: { name: 'asc' },
   });
 
   // Aggregate task stats by employee

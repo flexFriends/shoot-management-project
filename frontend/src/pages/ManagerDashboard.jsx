@@ -94,24 +94,33 @@ export default function ManagerDashboard() {
   const nextSevenDays = buildNextSevenDays();
   const employeeMap = new Map();
 
+  // Get only employees assigned to this manager
+  if (employees && Array.isArray(employees)) {
+    employees.forEach((employee) => {
+      if (employee?.id && !employeeMap.has(employee.id)) {
+        employeeMap.set(employee.id, employee);
+      }
+    });
+  }
+
+  // Also get employees from workspace members (for tasks)
   workspaceList.forEach((workspace) => {
     (workspace.members || []).forEach((member) => {
       const memberUser = member.user;
-      if (memberUser?.id && !employeeMap.has(memberUser.id)) {
-        employeeMap.set(memberUser.id, memberUser);
+      // Only include if it's in the employees list (already filtered by backend)
+      if (memberUser?.id && employees.some(e => e.id === memberUser.id)) {
+        if (!employeeMap.has(memberUser.id)) {
+          employeeMap.set(memberUser.id, memberUser);
+        }
       }
     });
   });
 
-  employees.forEach((employee) => {
-    if (employee?.id && !employeeMap.has(employee.id)) {
-      employeeMap.set(employee.id, employee);
-    }
+  const scheduleEmployees = Array.from(employeeMap.values()).sort((left, right) => {
+    const leftName = left?.name || left?.email || '';
+    const rightName = right?.name || right?.email || '';
+    return leftName.localeCompare(rightName);
   });
-
-  const scheduleEmployees = Array.from(employeeMap.values()).sort((left, right) =>
-    left.name.localeCompare(right.name)
-  );
 
   const workspaceStatusStats = workspaceList.reduce(
     (acc, workspace) => {
@@ -150,18 +159,19 @@ export default function ManagerDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 md:p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900">Welcome, {user?.name}! </h1>
-        <p className="text-gray-600 mt-2">Here's your team's task performance at a glance</p>
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Welcome, {user?.name}!</h1>
+        <p className="text-gray-600 mt-2 text-sm md:text-base">Here's your team's task performance at a glance</p>
       </div>
 
       {/* Main Content */}
       <div>
+        {/* Shoots Snapshot */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Shoots Snapshot</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Shoots Snapshot</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             <StatCard
               label="Total Shoots"
               value={workspaceStatusStats.total}
@@ -184,250 +194,193 @@ export default function ManagerDashboard() {
         </div>
 
         {/* Employee Schedule */}
-        <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-6 py-4">
-            <h2 className="text-xl font-bold text-white">Employee Schedule</h2>
-            <p className="text-slate-200 text-sm mt-1">Next 7 days based on workspace shoot dates</p>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-4 md:px-6 py-4">
+            <h2 className="text-lg md:text-xl font-bold text-white">Employee Schedule</h2>
+            <p className="text-slate-200 text-xs md:text-sm mt-1">Next 7 days based on workspace shoot dates</p>
           </div>
 
           {scheduleEmployees.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[980px] border-separate border-spacing-0">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="sticky left-0 z-10 bg-gray-50 px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b border-gray-200">
-                      Employee
-                    </th>
-                    {nextSevenDays.map((day) => (
-                      <th
-                        key={day.toISOString()}
-                        className="px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider border-b border-gray-200"
-                      >
-                        {formatScheduleDate(day)}
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full border-separate border-spacing-0">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="sticky left-0 z-10 bg-gray-50 px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b border-gray-200">
+                        Employee
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {scheduleEmployees.map((employee) => (
-                    <tr key={employee.id} className="hover:bg-slate-50 transition">
-                      <td className="sticky left-0 z-10 bg-white px-6 py-4 border-b border-gray-100 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white font-bold">
-                            {employee.name?.charAt(0)?.toUpperCase() || '?'}
+                      {nextSevenDays.map((day) => (
+                        <th
+                          key={day.toISOString()}
+                          className="px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider border-b border-gray-200"
+                        >
+                          {formatScheduleDate(day)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {scheduleEmployees.map((employee) => (
+                      <tr key={employee.id} className="hover:bg-slate-50 transition">
+                        <td className="sticky left-0 z-10 bg-white px-6 py-4 border-b border-gray-100 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+                              {employee.name?.charAt(0)?.toUpperCase() || '?'}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900 text-sm">{employee.name}</p>
+                              <p className="text-xs text-gray-500 truncate">{employee.email}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-semibold text-gray-900">{employee.name}</p>
-                            <p className="text-xs text-gray-500">{employee.email}</p>
-                          </div>
-                        </div>
-                      </td>
+                        </td>
 
+                        {nextSevenDays.map((day) => {
+                          const dayKey = day.toISOString().slice(0, 10);
+                          const scheduledWorkspaces = getScheduleForEmployeeAndDay(employee.id, dayKey);
+
+                          return (
+                            <td key={`${employee.id}-${dayKey}`} className="px-3 py-4 border-b border-gray-100 align-top text-center">
+                              {scheduledWorkspaces.length > 0 ? (
+                                <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold">
+                                  ✓ {scheduledWorkspaces.length}
+                                </div>
+                              ) : (
+                                <span className="text-gray-300 text-sm">—</span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile/Tablet Card View */}
+              <div className="lg:hidden divide-y divide-gray-200">
+                {scheduleEmployees.map((employee) => (
+                  <div key={employee.id} className="p-4 md:p-6">
+                    {/* Employee Header */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white font-bold">
+                        {employee.name?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900">{employee.name}</p>
+                        <p className="text-xs text-gray-500">{employee.email}</p>
+                      </div>
+                    </div>
+
+                    {/* Schedule Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                       {nextSevenDays.map((day) => {
                         const dayKey = day.toISOString().slice(0, 10);
                         const scheduledWorkspaces = getScheduleForEmployeeAndDay(employee.id, dayKey);
+                        const dayShort = day.toLocaleDateString('en-GB', {
+                          day: '2-digit',
+                          month: 'short',
+                        });
 
                         return (
-                          <td key={`${employee.id}-${dayKey}`} className="px-3 py-4 border-b border-gray-100 align-top">
+                          <div
+                            key={`${employee.id}-${dayKey}`}
+                            className={`p-3 rounded-lg border-2 text-center ${scheduledWorkspaces.length > 0
+                                ? 'border-emerald-200 bg-emerald-50'
+                                : 'border-gray-200 bg-gray-50'
+                              }`}
+                          >
+                            <p className="text-xs font-semibold text-gray-600 mb-1">{dayShort}</p>
                             {scheduledWorkspaces.length > 0 ? (
-                              <div className="space-y-2">
-                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold">
-                                  Scheduled {scheduledWorkspaces.length > 1 ? `(${scheduledWorkspaces.length})` : ''}
-                                </div>
-                                <div className="space-y-1.5">
-                                  {scheduledWorkspaces.slice(0, 2).map((workspace) => (
-                                    <div
-                                      key={workspace.id}
-                                      className="rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-900"
-                                    >
-                                      <p className="font-semibold leading-tight line-clamp-2">{workspace.title}</p>
-                                      <p className="text-[11px] text-emerald-700 mt-1">Shoot day</p>
-                                    </div>
-                                  ))}
-                                  {scheduledWorkspaces.length > 2 && (
-                                    <p className="text-[11px] text-gray-500 px-1">
-                                      +{scheduledWorkspaces.length - 2} more workspace{scheduledWorkspaces.length - 2 > 1 ? 's' : ''}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
+                              <p className="text-lg font-bold text-emerald-700">✓</p>
                             ) : (
-                              <div className="flex h-full min-h-[72px] items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 text-xs text-gray-400">
-                                No schedule
-                              </div>
+                              <p className="text-lg text-gray-300">—</p>
                             )}
-                          </td>
+                            {scheduledWorkspaces.length > 0 && (
+                              <p className="text-xs text-emerald-600 mt-1">{scheduledWorkspaces.length} shoot{scheduledWorkspaces.length > 1 ? 's' : ''}</p>
+                            )}
+                          </div>
                         );
                       })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
-            <div className="px-6 py-12 text-center text-gray-600">
-              No employees found for the schedule table.
+            <div className="p-8 md:p-12 text-center text-gray-600">
+              <p className="text-lg">📭 No employees found</p>
+              <p className="text-sm mt-2">Employees will appear here once assigned to shoots</p>
             </div>
           )}
         </div>
 
-        
-
-        {/* Completion Rate */}
-        {/* <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Overall Completion Rate</h3>
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-green-400 to-green-600 h-full rounded-full transition-all duration-500"
-                  style={{ width: `${stats.completionRate || 0}%` }}
-                ></div>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-3xl font-bold text-green-600">{stats.completionRate || 0}%</p>
-              <p className="text-sm text-gray-600">{stats.completed} of {stats.totalTasks} completed</p>
-            </div>
-          </div>
-        </div> */}
-
-        {/* Employee Performance */}
-        {/* <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4">
-            <h2 className="text-xl font-bold text-white">Employee Performance</h2>
-            <p className="text-indigo-100 text-sm mt-1">Task assignments and completion status</p>
+        {/* Task Assignments */}
+        <div className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-700 to-blue-700 px-4 md:px-6 py-4">
+            <h2 className="text-lg md:text-xl font-bold text-white">Task Assignments</h2>
+            <p className="text-indigo-100 text-xs md:text-sm mt-1">See which employee is assigned to each task in every shoot</p>
           </div>
 
-          {employees.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Employee</th>
-                    <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
-                    <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Pending</th>
-                    <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">In Progress</th>
-                    <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">In Review</th>
-                    <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Completed</th>
-                    <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Rejected</th>
-                    <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Rate</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {employees.map((emp) => {
-                    const rate = emp.total > 0 ? Math.round((emp.completed / emp.total) * 100) : 0;
-                    const pending = (emp.assigned || 0) + (emp.inProgress || 0);
+          {workspaces.length > 0 ? (
+            <div className="divide-y divide-gray-200">
+              {workspaces.map((workspace) => (
+                <div key={workspace.id} className="p-4 md:p-6">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                      <h3 className="text-base md:text-lg font-semibold text-gray-900">{workspace.title}</h3>
+                      <p className="text-sm text-gray-500">{workspace.taskCount} task{workspace.taskCount === 1 ? '' : 's'}</p>
+                    </div>
+                  </div>
 
-                    return (
-                      <tr 
-                        key={emp.id}
-                        onClick={() => setSelectedEmployee(selectedEmployee?.id === emp.id ? null : emp)}
-                        className="hover:bg-indigo-50 transition cursor-pointer"
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
-                              {emp.name.charAt(0).toUpperCase()}
-                            </div>
+                  {workspace.tasks?.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                      {workspace.tasks.map((task) => (
+                        <div key={task.id} className="rounded-xl border border-gray-200 bg-slate-50 p-4">
+                          <div className="flex items-start justify-between gap-3 mb-3">
                             <div>
-                              <p className="font-medium text-gray-900">{emp.name}</p>
-                              <p className="text-xs text-gray-600">{emp.email}</p>
+                              <p className="font-semibold text-gray-900">{task.title}</p>
+                              <p className="text-xs text-gray-500 mt-1">{task.priority} priority</p>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="inline-block bg-slate-100 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold">
-                            {emp.total}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold">
-                            {pending}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
-                            {emp.inProgress || 0}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="inline-block bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
-                            {emp.inReview || 0}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
-                            {emp.completed || 0}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
-                            {emp.rejected || 0}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <div className="w-16 bg-gray-200 rounded-full h-2 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all ${
-                                  rate >= 80 ? 'bg-green-500' : rate >= 50 ? 'bg-yellow-500' : 'bg-red-500'
-                                }`}
-                                style={{ width: `${rate}%` }}
-                              ></div>
-                            </div>
-                            <span className={`text-sm font-bold ${
-                              rate >= 80 ? 'text-green-600' : rate >= 50 ? 'text-yellow-600' : 'text-red-600'
-                            }`}>
-                              {rate}%
+                            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${task.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' : task.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' : task.status === 'IN_REVIEW' ? 'bg-amber-100 text-amber-700' : task.status === 'REJECTED' ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-700'}`}>
+                              {task.status}
                             </span>
                           </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+
+                          <div className="text-sm text-gray-700 space-y-1">
+                            <p>
+                              <span className="font-medium text-gray-900">Assigned to:</span>{' '}
+                              {task.assignee?.name || 'Unassigned'}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {task.assignee?.email || 'No employee assigned'}
+                            </p>
+                            {task.dueDate && (
+                              <p className="text-xs text-gray-500">
+                                Due: {new Date(task.dueDate).toLocaleDateString('en-GB', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric',
+                                })}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500">No tasks found for this workspace.</div>
+                  )}
+                </div>
+              ))}
             </div>
           ) : (
-            <div className="px-6 py-12 text-center">
-              <p className="text-gray-600">No employees assigned to tasks yet.</p>
+            <div className="p-8 md:p-12 text-center text-gray-600">
+              <p className="text-lg">No task assignments yet</p>
+              <p className="text-sm mt-2">Task details will appear here once you start assigning employees</p>
             </div>
           )}
-        </div> */}
-
-        {/* Selected Employee Details */}
-        {selectedEmployee && (
-          <div className="mt-8 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">{selectedEmployee.name}'s Performance Summary</h3>
-              <button
-                onClick={() => setSelectedEmployee(null)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-indigo-200">
-                <p className="text-gray-600 text-sm font-medium">Total Assigned</p>
-                <p className="text-2xl font-bold text-indigo-600 mt-1">{selectedEmployee.total}</p>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-green-200">
-                <p className="text-gray-600 text-sm font-medium">Completed</p>
-                <p className="text-2xl font-bold text-green-600 mt-1">{selectedEmployee.completed || 0}</p>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-yellow-200">
-                <p className="text-gray-600 text-sm font-medium">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600 mt-1">{(selectedEmployee.assigned || 0) + (selectedEmployee.inProgress || 0)}</p>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-red-200">
-                <p className="text-gray-600 text-sm font-medium">Rejected</p>
-                <p className="text-2xl font-bold text-red-600 mt-1">{selectedEmployee.rejected || 0}</p>
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

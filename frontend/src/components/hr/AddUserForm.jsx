@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { authApi } from '../../api/index.js';
 import toast from 'react-hot-toast';
 
@@ -25,7 +25,15 @@ export default function AddUserForm({ initialRole = 'EMPLOYEE', roles = ['EMPLOY
     if (!form.name.trim() || !form.email.trim() || !form.password.trim()) {
       return toast.error('Please fill required fields');
     }
-    createMutation.mutate(form);
+
+    const submitData = {
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      role: form.role,
+    };
+    
+    createMutation.mutate(submitData);
   };
 
   return (

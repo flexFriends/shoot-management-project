@@ -1,7 +1,11 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore.js';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+let API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Ensure base URL ends with /api so endpoint paths can be written without /api prefix
+if (!API_URL.endsWith('/api')) {
+  API_URL = API_URL.replace(/\/+$/,'') + '/api';
+}
 
 const axiosInstance = axios.create({
   baseURL: API_URL,

@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import * as authService from '../services/auth.service.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
-import { notifyManagerOnLogin } from '../utils/taskReminderScheduler.js';
+import { notifyManagerOnLogin, getUnassignedEmployees } from '../utils/taskReminderScheduler.js';
+import { createNotification } from '../utils/notification.js';
 
 // Validation schemas
 const loginSchema = z.object({
@@ -56,7 +57,38 @@ export const login = async (req, res, next) => {
 export const register = async (req, res, next) => {
   try {
     const validated = registerSchema.parse(req.body);
+    // If an employee is registering/being created and no managerId provided,
+    // auto-assign the single existing manager (project constraint: only one manager).
+    if ((validated.role === 'EMPLOYEE' || !validated.role) && !validated.managerId) {
+      const { prisma } = await import('../config/db.js');
+      const singleManager = await prisma.user.findFirst({ where: { role: 'MANAGER' } });
+      if (!singleManager) {
+        return errorResponse(res, 400, 'No manager found to assign employee to');
+      }
+      validated.managerId = singleManager.id;
+    }
+
     const user = await authService.registerUser(validated);
+    // If an employee was created, notify their manager about unassigned tasks/workspaces
+    if (user.role === 'EMPLOYEE' && user.managerId) {
+      try {
+        await notifyManagerOnLogin(user.managerId);
+        // Also create a DB-only notification specifically mentioning this employee
+        try {
+          const missing = await getUnassignedEmployees(user.managerId);
+          const isMissing = missing.some((m) => m.id === user.id);
+          if (isMissing) {
+            const message = `New employee ${user.name} has been added and is not assigned to any workspace for tomorrow.`;
+            await createNotification(user.managerId, null, 'TASK_REMINDER_MANAGER', message, null);
+          }
+        } catch (e) {
+          console.error('Failed to create DB notification for new employee:', e.message);
+        }
+      } catch (err) {
+        console.error('Failed to notify manager after registration:', err.message);
+      }
+    }
+
     return successResponse(res, 201, user, 'User registered successfully');
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -73,12 +105,46 @@ export const createUser = async (req, res, next) => {
   try {
     const validated = registerSchema.parse(req.body);
 
-    // If requester is HR, prevent creating ADMIN or HR accounts
-    if (req.user.role === 'HR' && validated.role && (validated.role === 'ADMIN' || validated.role === 'HR')) {
-      return errorResponse(res, 403, 'HR cannot create ADMIN or HR users');
+    // If requester is HR, allow only creating EMPLOYEE accounts
+    if (req.user.role === 'HR' && validated.role && validated.role !== 'EMPLOYEE') {
+      return errorResponse(res, 403, 'HR can only create EMPLOYEE users');
+    }
+
+    // When creating an EMPLOYEE via Admin/HR, if managerId is missing
+    // auto-assign the single manager (project constraint: only one manager).
+    if ((req.user.role === 'HR' || req.user.role === 'ADMIN') && (validated.role === 'EMPLOYEE' || !validated.role)) {
+      if (!validated.managerId) {
+        const { prisma } = await import('../config/db.js');
+        const singleManager = await prisma.user.findFirst({ where: { role: 'MANAGER' } });
+        if (!singleManager) {
+          return errorResponse(res, 400, 'No manager found to assign employee to');
+        }
+        validated.managerId = singleManager.id;
+      }
     }
 
     const user = await authService.registerUser(validated);
+
+    // If HR/Admin created an employee, notify their manager immediately
+    if (user.role === 'EMPLOYEE' && user.managerId) {
+      try {
+        await notifyManagerOnLogin(user.managerId);
+        // Also create a DB-only notification specifically mentioning this employee
+        try {
+          const missing = await getUnassignedEmployees(user.managerId);
+          const isMissing = missing.some((m) => m.id === user.id);
+          if (isMissing) {
+            const message = `New employee ${user.name} has been added and is not assigned to any workspace for tomorrow.`;
+            await createNotification(user.managerId, null, 'TASK_REMINDER_MANAGER', message, null);
+          }
+        } catch (e) {
+          console.error('Failed to create DB notification for new employee:', e.message);
+        }
+      } catch (err) {
+        console.error('Failed to notify manager after createUser:', err.message);
+      }
+    }
+
     return successResponse(res, 201, user, 'User created successfully');
   } catch (error) {
     if (error instanceof z.ZodError) {
