@@ -510,6 +510,7 @@ export default function TaskDetail() {
 
   const [showSubmit, setShowSubmit] = useState(false);
   const [submitForm, setSubmitForm] = useState({ submissionLink: '', note: '' });
+  const [submissionMode, setSubmissionMode] = useState('work');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -538,15 +539,33 @@ export default function TaskDetail() {
 
   const handleSubmitTask = async (e) => {
     e.preventDefault();
-    if (!submitForm.submissionLink?.trim()) {
+    const hasSubmissionLink = Boolean(submitForm.submissionLink?.trim());
+    const hasReason = Boolean(submitForm.note?.trim());
+
+    if (submissionMode === 'work' && !hasSubmissionLink) {
       toast.error('Please provide a submission link');
       return;
     }
+
+    if (submissionMode === 'blocked' && !hasReason) {
+      toast.error('Please provide a reason');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      await taskApi.submit(workspaceId, taskId, submitForm);
-      toast.success('Task submitted for review!');
+      const payload = {
+        note: submitForm.note?.trim() || undefined,
+      };
+
+      if (submissionMode === 'work' && hasSubmissionLink) {
+        payload.submissionLink = submitForm.submissionLink.trim();
+      }
+
+      await taskApi.submit(workspaceId, taskId, payload);
+      toast.success(submissionMode === 'blocked' ? 'Reason sent to manager!' : 'Task submitted for review!');
       setSubmitForm({ submissionLink: '', note: '' });
+      setSubmissionMode('work');
       setShowSubmit(false);
       refetchTask();
       refetchSubmission();
@@ -693,7 +712,7 @@ export default function TaskDetail() {
           {/* ── EMPLOYEE: Submission Section ── */}
           {isEmployee && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5 task-card">
-              <div className="flex items-center justify-between mb-4">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Your Submission</h2>
                 {canSubmit && !submission && !showSubmit && (
                   <button onClick={() => setShowSubmit(true)}
@@ -808,23 +827,53 @@ export default function TaskDetail() {
                     </p>
                   ) : (
                     <form onSubmit={handleSubmitTask} className="space-y-4">
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <button
+                          type="button"
+                          onClick={() => setSubmissionMode('work')}
+                          className={`rounded-xl border px-4 py-3 text-left text-sm font-semibold transition ${
+                            submissionMode === 'work'
+                              ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                              : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          I can submit the work
+                          <span className="mt-1 block text-xs font-normal text-gray-500">Upload a link to the finished task</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSubmissionMode('blocked')}
+                          className={`rounded-xl border px-4 py-3 text-left text-sm font-semibold transition ${
+                            submissionMode === 'blocked'
+                              ? 'border-amber-500 bg-amber-50 text-amber-700'
+                              : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          I cannot submit right now
+                          <span className="mt-1 block text-xs font-normal text-gray-500">Share the reason so the manager can review it</span>
+                        </button>
+                      </div>
+
                       <div>
                         <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                          Submission Link <span className="text-red-400">*</span>
+                          Submission Link {submissionMode === 'work' && <span className="text-red-400">*</span>}
                         </label>
                         <input type="url" value={submitForm.submissionLink}
                           onChange={(e) => setSubmitForm({ ...submitForm, submissionLink: e.target.value })}
-                          placeholder="https://instagram.com/p/... or Dropbox link"
+                          placeholder={submissionMode === 'blocked' ? 'Optional if you still have a reference link' : 'https://instagram.com/p/... or Dropbox link'}
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition"
                           autoComplete="off" />
+                        {submissionMode === 'blocked' && (
+                          <p className="mt-1 text-xs text-gray-500">Leave this empty if you only need to share the reason.</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                          Notes (optional)
+                          {submissionMode === 'blocked' ? 'Reason for not submitting' : 'Notes (optional)'}
                         </label>
                         <textarea value={submitForm.note}
                           onChange={(e) => setSubmitForm({ ...submitForm, note: e.target.value })}
-                          placeholder="Any comments about your submission..."
+                          placeholder={submissionMode === 'blocked' ? 'Explain what is preventing you from submitting this task...' : 'Any comments about your submission...'}
                           rows="3"
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none resize-none transition" />
                       </div>
@@ -867,16 +916,24 @@ export default function TaskDetail() {
 
                 {/* Submission link */}
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Submission Link</p>
-                  <a href={submission.submissionLink} target="_blank" rel="noopener noreferrer"
-                    className="text-indigo-600 hover:text-indigo-700 text-sm break-all font-medium">
-                    {submission.submissionLink} ↗
-                  </a>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">
+                    {submission.submissionLink ? 'Submission Link' : 'No submission link provided'}
+                  </p>
+                  {submission.submissionLink ? (
+                    <a href={submission.submissionLink} target="_blank" rel="noopener noreferrer"
+                      className="text-indigo-600 hover:text-indigo-700 text-sm break-all font-medium">
+                      {submission.submissionLink} ↗
+                    </a>
+                  ) : (
+                    <p className="text-sm text-gray-600">The employee shared a reason instead of a deliverable.</p>
+                  )}
                 </div>
 
                 {submission.note && (
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Employee's Note</p>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">
+                      {submission.submissionLink ? "Employee's Note" : 'Employee Reason'}
+                    </p>
                     <p className="text-sm text-gray-700 whitespace-pre-wrap">{submission.note}</p>
                   </div>
                 )}
