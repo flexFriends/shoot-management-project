@@ -306,10 +306,18 @@ export const addWorkspaceMember = async (workspaceId, userId, role = 'MEMBER') =
   });
 
   try {
+    console.info(
+      `[Workspace Member] Sending assignment email | workspaceId=${workspaceId} | userId=${userId} | email=${result.member.user.email}`
+    );
+
     await sendEmail(
       result.member.user.email,
       `Added to shoot: ${result.workspace?.title || 'New Workspace'}`,
       emailHtml
+    );
+
+    console.info(
+      `[Workspace Member] Assignment email completed | workspaceId=${workspaceId} | userId=${userId}`
     );
   } catch (error) {
     console.error(`[Workspace Member] Failed to send email for workspace ${workspaceId}:`, error.message);

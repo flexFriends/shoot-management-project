@@ -3,6 +3,14 @@ import { prisma } from '../config/db.js';
 
 let transporter;
 
+const maskEmail = (value) => {
+  if (!value || typeof value !== 'string' || !value.includes('@')) return value || 'not-set';
+  const [name, domain] = value.split('@');
+  if (!name) return `***@${domain}`;
+  const prefix = name.slice(0, 2);
+  return `${prefix}***@${domain}`;
+};
+
 const getMailConfig = () => {
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
   const port = Number(process.env.SMTP_PORT || 587);
@@ -21,6 +29,7 @@ const getTransporter = () => {
   const { host, port, user, pass } = getMailConfig();
 
   if (!user || !pass) {
+    console.error('[Email] SMTP credentials missing. Expected GMAIL_USER/GMAIL_APP_PASSWORD or SMTP_USER/SMTP_PASS.');
     throw new Error('Email SMTP credentials are required (set GMAIL_USER/GMAIL_APP_PASSWORD or SMTP_USER/SMTP_PASS)');
   }
 
@@ -52,15 +61,35 @@ export const createNotification = async (recipientId, senderId, type, message, t
 };
 
 export const sendEmail = async (to, subject, htmlBody) => {
-  const { user, from } = getMailConfig();
+  const { host, port, user, from } = getMailConfig();
   const mailer = getTransporter();
 
-  return mailer.sendMail({
-    from,
-    to,
-    subject,
-    html: htmlBody,
-  });
+  console.info(
+    `[Email] Attempting send via ${host}:${port} from ${maskEmail(from || user)} to ${maskEmail(to)} | subject="${subject}"`
+  );
+
+  try {
+    const info = await mailer.sendMail({
+      from,
+      to,
+      subject,
+      html: htmlBody,
+    });
+
+    console.info(
+      `[Email] Sent successfully | messageId=${info.messageId || 'n/a'} | accepted=${(info.accepted || []).length} | rejected=${(info.rejected || []).length}`
+    );
+
+    return info;
+  } catch (error) {
+    console.error(
+      `[Email] Send failed | code=${error.code || 'n/a'} | responseCode=${error.responseCode || 'n/a'} | message=${error.message}`
+    );
+    if (error.response) {
+      console.error(`[Email] Provider response: ${error.response}`);
+    }
+    throw error;
+  }
 };
 
 export const createNotificationAndEmail = async (
