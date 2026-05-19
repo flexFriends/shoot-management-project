@@ -1,5 +1,20 @@
 import { prisma } from '../config/db.js';
 import { getUnassignedEmployees as computeUnassignedEmployees } from '../utils/taskReminderScheduler.js';
+import { sendEmail } from '../utils/notification.js';
+import { buildWorkspaceAssignmentEmail } from '../utils/emailTemplates.js';
+
+const formatDateLabel = (dateValue) => {
+  if (!dateValue) return '';
+
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return '';
+
+  return date.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+};
 
 /**
  * Create workspace
@@ -236,10 +251,15 @@ export const deleteWorkspace = async (workspaceId) => {
  * Add member to workspace
  */
 export const addWorkspaceMember = async (workspaceId, userId, role = 'MEMBER') => {
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const workspace = await tx.workspace.findUnique({
       where: { id: workspaceId },
-      select: { id: true, title: true, setupType: true },
+      select: {
+        id: true,
+        title: true,
+        setupType: true,
+        shootDate: true,
+      },
     });
 
     const member = await tx.workspaceMember.create({
@@ -271,8 +291,31 @@ export const addWorkspaceMember = async (workspaceId, userId, role = 'MEMBER') =
       });
     }
 
-    return member;
+    return { member, workspace };
   });
+
+  const setupTypeLabel = result.workspace?.setupType
+    ? result.workspace.setupType.replace('_', ' ').toLowerCase()
+    : '';
+
+  const emailHtml = buildWorkspaceAssignmentEmail({
+    employeeName: result.member.user.name,
+    workspaceTitle: result.workspace?.title || 'Shoot Workspace',
+    shootDateLabel: formatDateLabel(result.workspace?.shootDate),
+    setupTypeLabel,
+  });
+
+  try {
+    await sendEmail(
+      result.member.user.email,
+      `Added to shoot: ${result.workspace?.title || 'New Workspace'}`,
+      emailHtml
+    );
+  } catch (error) {
+    console.error(`[Workspace Member] Failed to send email for workspace ${workspaceId}:`, error.message);
+  }
+
+  return result.member;
 };
 
 /**

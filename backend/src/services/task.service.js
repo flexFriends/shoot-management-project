@@ -1,4 +1,63 @@
 import { prisma } from '../config/db.js';
+import { sendEmail } from '../utils/notification.js';
+import { buildTaskAssignmentEmail } from '../utils/emailTemplates.js';
+
+const formatDateLabel = (dateValue) => {
+  if (!dateValue) return '';
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+};
+
+const notifyTaskAssignment = async ({ taskId, assigneeId }) => {
+  if (!assigneeId) return;
+
+  try {
+    const task = await prisma.todoTask.findUnique({
+      where: { id: taskId },
+      select: {
+        id: true,
+        title: true,
+        dueDate: true,
+        workspace: {
+          select: {
+            title: true,
+            shootDate: true,
+            createdBy: {
+              select: { name: true },
+            },
+          },
+        },
+      },
+      include: {
+        assignee: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+    });
+
+    if (!task?.assignee?.email) return;
+
+    const emailHtml = buildTaskAssignmentEmail({
+      employeeName: task.assignee.name,
+      taskTitle: task.title,
+      workspaceTitle: task.workspace?.title || 'Shoot Workspace',
+      shootDateLabel: formatDateLabel(task.workspace?.shootDate),
+      dueDateLabel: formatDateLabel(task.dueDate),
+      managerName: task.workspace?.createdBy?.name,
+    });
+
+    const emailSubject = `New task assigned: ${task.title}`;
+
+    await sendEmail(task.assignee.email, emailSubject, emailHtml);
+  } catch (error) {
+    console.error(`[Task Assignment] Failed to send email for task ${taskId}:`, error.message);
+  }
+};
 
 /**
  * Create task
@@ -34,6 +93,10 @@ export const createTask = async (workspaceId, taskData, userId) => {
       attachments: true,
     },
   });
+
+  if (task.assigneeId) {
+    void notifyTaskAssignment({ taskId: task.id, assigneeId: task.assigneeId });
+  }
 
   return task;
 };
@@ -121,6 +184,11 @@ export const getTaskById = async (taskId) => {
  * Update task
  */
 export const updateTask = async (taskId, updateData) => {
+  const existingTask = await prisma.todoTask.findUnique({
+    where: { id: taskId },
+    select: { assigneeId: true },
+  });
+
   const task = await prisma.todoTask.update({
     where: { id: taskId },
     data: updateData,
@@ -147,6 +215,10 @@ export const updateTask = async (taskId, updateData) => {
       },
     },
   });
+
+  if (task.assigneeId && task.assigneeId !== existingTask?.assigneeId) {
+    void notifyTaskAssignment({ taskId: task.id, assigneeId: task.assigneeId });
+  }
 
   return task;
 };

@@ -116,7 +116,97 @@ export const buildEscalationEmail = ({
   `;
 };
 
+export const buildTaskAssignmentEmail = ({
+  employeeName,
+  taskTitle,
+  workspaceTitle,
+  shootDateLabel,
+  dueDateLabel,
+  managerName,
+}) => {
+  return `
+    <html>
+      <head>
+        <style>${baseStyles}</style>
+      </head>
+      <body>
+        <div class="wrapper">
+          <div class="card">
+            <div class="header">
+              <div class="brand">Studio Shoot Management</div>
+              <h1 class="title">New Task Assigned</h1>
+            </div>
+            <div class="content">
+              <p class="lead">Hi <strong>${employeeName}</strong>, a new task has been assigned to you for an upcoming shoot.</p>
+              <div class="section">
+                <p class="section-title">Task details</p>
+                <div class="highlight">
+                  <p class="lead"><strong>Task:</strong> ${taskTitle}</p>
+                  <p class="meta"><strong>Shoot:</strong> ${workspaceTitle}</p>
+                  ${shootDateLabel ? `<p class="meta"><strong>Shoot date:</strong> ${shootDateLabel}</p>` : ''}
+                  ${dueDateLabel ? `<p class="meta"><strong>Task due date:</strong> ${dueDateLabel}</p>` : ''}
+                  ${managerName ? `<p class="meta"><strong>Assigned by:</strong> ${managerName}</p>` : ''}
+                </div>
+              </div>
+              <div class="section">
+                <p class="lead">Please check your task board and update the submission once the work is ready.</p>
+              </div>
+            </div>
+            <div class="footer">
+              This is an automated assignment email from Studio Shoot Management.
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+};
+
+export const buildWorkspaceAssignmentEmail = ({
+  employeeName,
+  workspaceTitle,
+  shootDateLabel,
+  setupTypeLabel,
+}) => {
+  return `
+    <html>
+      <head>
+        <style>${baseStyles}</style>
+      </head>
+      <body>
+        <div class="wrapper">
+          <div class="card">
+            <div class="header">
+              <div class="brand">Studio Shoot Management</div>
+              <h1 class="title">You have been added to a shoot</h1>
+            </div>
+            <div class="content">
+              <p class="lead">Hi <strong>${employeeName}</strong>, you have been added to a new shoot workspace.</p>
+              <div class="section">
+                <p class="section-title">Shoot details</p>
+                <div class="highlight">
+                  <p class="lead"><strong>Shoot:</strong> ${workspaceTitle}</p>
+                  ${shootDateLabel ? `<p class="meta"><strong>Shoot date:</strong> ${shootDateLabel}</p>` : ''}
+                  ${setupTypeLabel ? `<p class="meta"><strong>Setup type:</strong> ${setupTypeLabel}</p>` : ''}
+                </div>
+              </div>
+              <div class="section">
+                <p class="lead">Please check your dashboard for the full shoot details and assigned tasks.</p>
+              </div>
+            </div>
+            <div class="footer">
+              This is an automated shoot assignment email from Studio Shoot Management.
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+};
+
 export default {
   buildManagerReminderEmail,
   buildEscalationEmail,
+  buildTaskAssignmentEmail,
+  buildWorkspaceAssignmentEmail,
 };
