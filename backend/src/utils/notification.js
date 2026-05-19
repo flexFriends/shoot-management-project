@@ -3,26 +3,36 @@ import { prisma } from '../config/db.js';
 
 let transporter;
 
+const getMailConfig = () => {
+  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const port = Number(process.env.SMTP_PORT || 587);
+  const user = process.env.GMAIL_USER || process.env.SMTP_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS;
+  const from = process.env.EMAIL_FROM || (user ? `Studio Shoot Management <${user}>` : undefined);
+
+  return { host, port, user, pass, from };
+};
+
 const getTransporter = () => {
   if (transporter) {
     return transporter;
   }
 
-  const gmailUser = process.env.GMAIL_USER;
-  const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+  const { host, port, user, pass } = getMailConfig();
 
-  if (!gmailUser || !gmailAppPassword) {
-    throw new Error('GMAIL_USER and GMAIL_APP_PASSWORD are required to send emails');
+  if (!user || !pass) {
+    throw new Error('Email SMTP credentials are required (set GMAIL_USER/GMAIL_APP_PASSWORD or SMTP_USER/SMTP_PASS)');
   }
 
-  // Create a Gmail App Password in your Google Account under Security > 2-Step Verification > App passwords.
+  const secure = Number(port) === 465;
+
   transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    host,
+    port,
+    secure,
     auth: {
-      user: gmailUser,
-      pass: gmailAppPassword,
+      user,
+      pass,
     },
   });
 
@@ -42,11 +52,11 @@ export const createNotification = async (recipientId, senderId, type, message, t
 };
 
 export const sendEmail = async (to, subject, htmlBody) => {
-  const gmailUser = process.env.GMAIL_USER;
+  const { user, from } = getMailConfig();
   const mailer = getTransporter();
 
   return mailer.sendMail({
-    from: `Studio Shoot Management <${gmailUser}>`,
+    from,
     to,
     subject,
     html: htmlBody,
