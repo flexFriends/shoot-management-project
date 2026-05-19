@@ -146,6 +146,23 @@ export const getTaskById = async (taskId) => {
   const task = await prisma.todoTask.findUnique({
     where: { id: taskId },
     include: {
+      workspace: {
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          shootLocation: true,
+          shootDate: true,
+          setupType: true,
+          priority: true,
+          status: true,
+          notes: true,
+          coverImage: true,
+          createdBy: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      },
       assignee: {
         select: { id: true, name: true, avatar: true },
       },

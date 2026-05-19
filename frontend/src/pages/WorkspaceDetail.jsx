@@ -108,6 +108,20 @@ export default function WorkspaceDetail() {
     completed: tasks.filter((t) => t.status === 'COMPLETED').length,
   };
 
+  const formatDate = (value) => {
+    if (!value) return 'Not set';
+    try {
+      return new Date(value).toLocaleDateString('en-GB', {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+    } catch (error) {
+      return 'Not set';
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
       <Sidebar />
@@ -117,18 +131,72 @@ export default function WorkspaceDetail() {
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <h1 className="text-2xl font-bold text-gray-900 break-words sm:text-3xl">{workspace.title}</h1>
-              <p className="mt-1 text-sm text-gray-600 break-words">{workspace.description}</p>
-              {workspace.setupType && (
-                <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600 mt-2">
-                  Setup Required: {workspace.setupType.replace('_', ' ')}
-                </p>
-              )}
+              
             </div>
             {isManager && (
               <button onClick={() => navigate(`/workspaces/${workspaceId}/edit`)} className="inline-flex w-full justify-center rounded bg-indigo-600 px-4 py-2 text-white sm:w-auto">
                 Edit
               </button>
             )}
+          </div>
+
+          {/* Shoot Overview */}
+          <div className="mb-6 rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <div className="border-b border-gray-100 px-4 py-4 sm:px-6">
+              <h2 className="text-lg font-semibold text-gray-900">Shoot Overview</h2>
+              <p className="mt-1 text-sm text-gray-500">Everything the manager set for this workspace, visible to all members.</p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3 sm:p-6">
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Shoot Date</p>
+                <p className="mt-2 text-sm font-semibold text-slate-900">{formatDate(workspace.shootDate)}</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Shoot Location</p>
+                <p className="mt-2 text-sm font-semibold text-slate-900">{workspace.shootLocation || 'Not set'}</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Setup Type</p>
+                <p className="mt-2 text-sm font-semibold text-slate-900">{workspace.setupType ? workspace.setupType.replace('_', ' ') : 'Not set'}</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Priority</p>
+                <p className="mt-2 text-sm font-semibold text-slate-900">{workspace.priority || 'Not set'}</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</p>
+                <p className="mt-2 text-sm font-semibold text-slate-900">{workspace.status || 'Not set'}</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Members</p>
+                <p className="mt-2 text-sm font-semibold text-slate-900">{workspace.members?.length || 0} assigned</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4 sm:col-span-2 lg:col-span-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Created By</p>
+                <p className="mt-2 text-sm font-semibold text-slate-900">{workspace.createdBy?.name || 'Unknown'}</p>
+                <p className="text-xs text-slate-500">{workspace.createdBy?.email || 'No email'}</p>
+              </div>
+              {workspace.notes && (
+                <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 sm:col-span-2 lg:col-span-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-500">Manager Notes</p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-amber-900">{workspace.notes}</p>
+                </div>
+              )}
+              {workspace.description && (
+                <div className="rounded-xl border border-gray-100 bg-white p-4 sm:col-span-2 lg:col-span-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Shoot Description</p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{workspace.description}</p>
+                </div>
+              )}
+              {workspace.coverImage && (
+                <div className="rounded-xl border border-gray-100 bg-white p-4 sm:col-span-2 lg:col-span-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Cover Image</p>
+                  <a href={workspace.coverImage} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-indigo-600 hover:text-indigo-700 break-all">
+                    {workspace.coverImage}
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Stats */}

@@ -636,6 +636,23 @@ export default function TaskDetail() {
   const canSubmit = isEmployee && task.status !== 'COMPLETED' && task.status !== 'REVIEW';
   const dueDate = task.dueDate ? new Date(task.dueDate) : null;
   const isOverdue = dueDate && dueDate < new Date() && task.status !== 'COMPLETED';
+  const workspace = task.workspace;
+  const workspaceShootDate = workspace?.shootDate ? new Date(workspace.shootDate) : null;
+
+  const formatDisplayDate = (dateValue) => {
+    if (!dateValue) return 'Not set';
+
+    try {
+      return new Date(dateValue).toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      return 'Not set';
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden" style={{ fontFamily: "'DM Sans', 'Inter', sans-serif" }}>
@@ -687,6 +704,69 @@ export default function TaskDetail() {
               )}
             </div>
           </div>
+
+          {/* Shoot Details */}
+          {workspace && (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-6 mb-5 task-card">
+              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400">Shoot Details</h2>
+                  <p className="mt-1 text-lg font-semibold text-gray-900">{workspace.title}</p>
+                </div>
+                <span className="inline-flex w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                  {workspace.status || 'DRAFT'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Shoot Date</p>
+                  <p className="text-sm font-medium text-gray-800">{formatDisplayDate(workspaceShootDate)}</p>
+                </div>
+
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Shoot Location</p>
+                  <p className="text-sm font-medium text-gray-800">{workspace.shootLocation || 'Not provided'}</p>
+                </div>
+
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Setup Type</p>
+                  <p className="text-sm font-medium text-gray-800">{workspace.setupType ? workspace.setupType.replaceAll('_', ' ') : 'Not provided'}</p>
+                </div>
+
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Priority</p>
+                  <p className="text-sm font-medium text-gray-800">{workspace.priority || 'Not provided'}</p>
+                </div>
+
+                {workspace.createdBy && (
+                  <div className="rounded-xl bg-gray-50 p-4 sm:col-span-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Created By</p>
+                    <p className="text-sm font-medium text-gray-800">{workspace.createdBy.name}</p>
+                    <p className="text-xs text-gray-500">{workspace.createdBy.email}</p>
+                  </div>
+                )}
+              </div>
+
+              {(workspace.description || workspace.notes) && (
+                <div className="mt-4 space-y-3">
+                  {workspace.description && (
+                    <div className="rounded-xl border border-gray-100 bg-white p-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Shoot Description</p>
+                      <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">{workspace.description}</p>
+                    </div>
+                  )}
+
+                  {workspace.notes && (
+                    <div className="rounded-xl border border-amber-100 bg-amber-50 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-amber-500 mb-1">Manager Notes</p>
+                      <p className="text-sm leading-relaxed text-amber-900 whitespace-pre-wrap">{workspace.notes}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Description */}
           {task.description && (
