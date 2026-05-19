@@ -585,9 +585,9 @@ export default function TaskDetail() {
 
   if (taskLoading) {
     return (
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
         <Sidebar />
-        <main className="flex-1 ml-64 flex items-center justify-center">
+        <main className="flex flex-1 items-center justify-center ml-0 pt-16 md:ml-64 md:pt-0">
           <div className="text-center">
             <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
             <p className="text-gray-500 text-sm">Loading task...</p>
@@ -599,9 +599,9 @@ export default function TaskDetail() {
 
   if (!task) {
     return (
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
         <Sidebar />
-        <main className="flex-1 ml-64 flex flex-col items-center justify-center">
+        <main className="flex flex-1 flex-col items-center justify-center ml-0 pt-16 md:ml-64 md:pt-0">
           <p className="text-gray-500 mb-4">Task not found</p>
           <button onClick={() => navigate(`/workspaces/${workspaceId}`)}
             className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition text-sm font-medium">
@@ -619,7 +619,7 @@ export default function TaskDetail() {
   const isOverdue = dueDate && dueDate < new Date() && task.status !== 'COMPLETED';
 
   return (
-    <div className="flex h-screen bg-gray-50" style={{ fontFamily: "'DM Sans', 'Inter', sans-serif" }}>
+    <div className="flex h-screen bg-gray-50 overflow-hidden" style={{ fontFamily: "'DM Sans', 'Inter', sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
         @keyframes modalIn { from { opacity:0; transform:scale(0.96) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
@@ -630,8 +630,8 @@ export default function TaskDetail() {
 
       <Sidebar />
 
-      <main className="flex-1 ml-64 overflow-auto">
-        <div className="max-w-3xl mx-auto px-8 py-10">
+      <main className="flex-1 ml-0 md:ml-64 pt-16 md:pt-0 overflow-auto transition-all duration-300">
+        <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
 
           {/* Back button */}
           <button onClick={() => navigate(`/workspaces/${workspaceId}`)}
@@ -641,17 +641,17 @@ export default function TaskDetail() {
           </button>
 
           {/* Header card */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 mb-5 task-card">
-            <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-8 mb-5 task-card">
+            <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <h1 className="text-2xl font-bold text-gray-900 leading-tight flex-1">{task.title}</h1>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
                 <StatusBadge status={task.status} />
                 <PriorityBadge priority={task.priority} />
               </div>
             </div>
 
             {/* Meta row */}
-            <div className="flex flex-wrap gap-6 text-sm text-gray-500">
+            <div className="flex flex-col gap-3 text-sm text-gray-500 sm:flex-row sm:flex-wrap sm:gap-6">
               {task.createdBy && (
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600">
@@ -781,18 +781,18 @@ export default function TaskDetail() {
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none resize-none transition"
                         />
                       </div>
-                      <div className="flex gap-2 pt-1">
+                      <div className="flex flex-col gap-2 pt-1 sm:flex-row">
                         <button
                           type="submit"
                           disabled={isSubmitting}
-                          className="flex-1 py-3 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition disabled:opacity-50"
+                          className="flex-1 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50"
                         >
                           {isSubmitting ? 'Submitting...' : 'Resubmit for Review'}
                         </button>
                         <button
                           type="button"
                           onClick={() => setShowSubmit(false)}
-                          className="px-5 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition"
+                          className="rounded-xl border border-gray-200 px-5 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
                         >
                           Cancel
                         </button>
@@ -828,13 +828,13 @@ export default function TaskDetail() {
                           rows="3"
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none resize-none transition" />
                       </div>
-                      <div className="flex gap-2 pt-1">
+                      <div className="flex flex-col gap-2 pt-1 sm:flex-row">
                         <button type="submit" disabled={isSubmitting}
-                          className="flex-1 py-3 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition disabled:opacity-50">
+                          className="flex-1 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50">
                           {isSubmitting ? 'Submitting...' : 'Submit for Review'}
                         </button>
                         <button type="button" onClick={() => setShowSubmit(false)}
-                          className="px-5 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
+                          className="rounded-xl border border-gray-200 px-5 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
                           Cancel
                         </button>
                       </div>
@@ -852,7 +852,7 @@ export default function TaskDetail() {
 
               <div className="space-y-4">
                 {/* Employee info */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-bold text-indigo-600">
                       {submission.submittedBy?.name?.[0]?.toUpperCase()}
@@ -899,13 +899,13 @@ export default function TaskDetail() {
 
                 {/* Action buttons */}
                 {submission.status === 'PENDING' && (
-                  <div className="flex gap-3 pt-2">
+                  <div className="flex flex-col gap-3 pt-2 sm:flex-row">
                     <button onClick={() => setShowApproveModal(true)}
-                      className="flex-1 py-3 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition">
+                      className="flex-1 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700">
                       ✓ Approve
                     </button>
                     <button onClick={() => setShowRejectModal(true)}
-                      className="flex-1 py-3 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition">
+                      className="flex-1 rounded-xl bg-red-500 py-3 text-sm font-semibold text-white transition hover:bg-red-600">
                       ✗ Reject
                     </button>
                   </div>
@@ -924,13 +924,13 @@ export default function TaskDetail() {
             placeholder="Great work! The submission looks perfect..."
             rows="4"
             className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none resize-none mb-4 transition" />
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <button onClick={handleApprove} disabled={isProcessing}
-              className="flex-1 py-3 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition disabled:opacity-50">
+              className="flex-1 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50">
               {isProcessing ? 'Processing...' : 'Confirm Approval'}
             </button>
             <button onClick={() => { setShowApproveModal(false); setApprovalNote(''); }}
-              className="px-5 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
+              className="rounded-xl border border-gray-200 px-5 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
               Cancel
             </button>
           </div>
@@ -945,13 +945,13 @@ export default function TaskDetail() {
             placeholder="Please revise the following..."
             rows="4"
             className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-red-400 focus:border-transparent outline-none resize-none mb-4 transition" />
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <button onClick={handleReject} disabled={isProcessing}
-              className="flex-1 py-3 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition disabled:opacity-50">
+              className="flex-1 rounded-xl bg-red-500 py-3 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-50">
               {isProcessing ? 'Processing...' : 'Confirm Rejection'}
             </button>
             <button onClick={() => { setShowRejectModal(false); setApprovalNote(''); }}
-              className="px-5 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
+              className="rounded-xl border border-gray-200 px-5 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
               Cancel
             </button>
           </div>

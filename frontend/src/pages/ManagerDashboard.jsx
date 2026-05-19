@@ -141,11 +141,11 @@ export default function ManagerDashboard() {
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
-      className={`bg-gradient-to-br from-${color}-50 to-${color}-100 rounded-xl p-6 border border-${color}-200 shadow-sm hover:shadow-md transition ${onClick ? 'cursor-pointer' : ''}`}
+      className={`rounded-xl border p-4 shadow-sm transition hover:shadow-md sm:p-5 ${onClick ? 'cursor-pointer' : ''} ${color === 'slate' ? 'border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100' : color === 'green' ? 'border-green-200 bg-gradient-to-br from-green-50 to-green-100' : color === 'yellow' ? 'border-yellow-200 bg-gradient-to-br from-yellow-50 to-yellow-100' : 'border-indigo-200 bg-gradient-to-br from-indigo-50 to-indigo-100'}`}
     >
-      <p className={`text-${color}-600 text-sm font-medium uppercase tracking-wide mb-2`}>{label}</p>
-      <p className={`text-4xl font-bold text-gray-900 mb-1`}>{value}</p>
-      {subtext && <p className={`text-sm text-${color}-600`}>{subtext}</p>}
+      <p className={`text-sm font-medium uppercase tracking-wide mb-2 ${color === 'slate' ? 'text-slate-600' : color === 'green' ? 'text-green-600' : color === 'yellow' ? 'text-yellow-700' : 'text-indigo-600'}`}>{label}</p>
+      <p className="text-3xl font-bold text-gray-900 sm:text-4xl">{value}</p>
+      {subtext && <p className={`mt-1 text-sm ${color === 'slate' ? 'text-slate-600' : color === 'green' ? 'text-green-600' : color === 'yellow' ? 'text-yellow-700' : 'text-indigo-600'}`}>{subtext}</p>}
     </div>
   );
 
@@ -159,19 +159,19 @@ export default function ManagerDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Welcome, {user?.name}!</h1>
-        <p className="text-gray-600 mt-2 text-sm md:text-base">Here's your team's task performance at a glance</p>
+      <div className="mb-8 max-w-4xl">
+        <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">Welcome, {user?.name}!</h1>
+        <p className="mt-2 text-sm text-gray-600 sm:text-base">Here's your team's task performance at a glance</p>
       </div>
 
       {/* Main Content */}
       <div>
         {/* Shoots Snapshot */}
         <div className="mb-8">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Shoots Snapshot</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+          <h2 className="mb-4 text-xl font-bold text-gray-900 sm:mb-6 sm:text-2xl">Shoots Snapshot</h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
             <StatCard
               label="Total Shoots"
               value={workspaceStatusStats.total}
@@ -194,26 +194,26 @@ export default function ManagerDashboard() {
         </div>
 
         {/* Employee Schedule */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-4 md:px-6 py-4">
-            <h2 className="text-lg md:text-xl font-bold text-white">Employee Schedule</h2>
-            <p className="text-slate-200 text-xs md:text-sm mt-1">Next 7 days based on workspace shoot dates</p>
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-4 py-4 sm:px-6">
+            <h2 className="text-lg font-bold text-white sm:text-xl">Employee Schedule</h2>
+            <p className="mt-1 text-xs text-slate-200 sm:text-sm">Next 7 days based on workspace shoot dates</p>
           </div>
 
           {scheduleEmployees.length > 0 ? (
             <>
               {/* Desktop Table View */}
               <div className="hidden lg:block overflow-x-auto">
-                <table className="w-full border-separate border-spacing-0">
+                <table className="min-w-full border-separate border-spacing-0">
                   <thead>
                     <tr className="bg-gray-50">
-                      <th className="sticky left-0 z-10 bg-gray-50 px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider border-b border-gray-200">
+                      <th className="sticky left-0 z-10 bg-gray-50 px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 border-b border-gray-200 sm:px-6">
                         Employee
                       </th>
                       {nextSevenDays.map((day) => (
                         <th
                           key={day.toISOString()}
-                          className="px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider border-b border-gray-200"
+                          className="px-3 py-4 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 border-b border-gray-200 sm:px-4"
                         >
                           {formatScheduleDate(day)}
                         </th>
@@ -222,15 +222,15 @@ export default function ManagerDashboard() {
                   </thead>
                   <tbody>
                     {scheduleEmployees.map((employee) => (
-                      <tr key={employee.id} className="hover:bg-slate-50 transition">
-                        <td className="sticky left-0 z-10 bg-white px-6 py-4 border-b border-gray-100 whitespace-nowrap">
+                      <tr key={employee.id} className="transition hover:bg-slate-50">
+                        <td className="sticky left-0 z-10 whitespace-nowrap border-b border-gray-100 bg-white px-4 py-4 sm:px-6">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 text-sm font-bold text-white">
                               {employee.name?.charAt(0)?.toUpperCase() || '?'}
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-900 text-sm">{employee.name}</p>
-                              <p className="text-xs text-gray-500 truncate">{employee.email}</p>
+                              <p className="text-sm font-semibold text-gray-900">{employee.name}</p>
+                              <p className="max-w-[12rem] truncate text-xs text-gray-500 xl:max-w-[16rem]">{employee.email}</p>
                             </div>
                           </div>
                         </td>
@@ -240,9 +240,9 @@ export default function ManagerDashboard() {
                           const scheduledWorkspaces = getScheduleForEmployeeAndDay(employee.id, dayKey);
 
                           return (
-                            <td key={`${employee.id}-${dayKey}`} className="px-3 py-4 border-b border-gray-100 align-top text-center">
+                            <td key={`${employee.id}-${dayKey}`} className="border-b border-gray-100 px-2 py-4 text-center align-top sm:px-3">
                               {scheduledWorkspaces.length > 0 ? (
-                                <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold">
+                                <div className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-800">
                                   ✓ {scheduledWorkspaces.length}
                                 </div>
                               ) : (
@@ -258,22 +258,22 @@ export default function ManagerDashboard() {
               </div>
 
               {/* Mobile/Tablet Card View */}
-              <div className="lg:hidden divide-y divide-gray-200">
+              <div className="divide-y divide-gray-200 lg:hidden">
                 {scheduleEmployees.map((employee) => (
-                  <div key={employee.id} className="p-4 md:p-6">
+                  <div key={employee.id} className="p-4 sm:p-6">
                     {/* Employee Header */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white font-bold">
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 font-bold text-white">
                         {employee.name?.charAt(0)?.toUpperCase() || '?'}
                       </div>
                       <div>
                         <p className="font-bold text-gray-900">{employee.name}</p>
-                        <p className="text-xs text-gray-500">{employee.email}</p>
+                        <p className="max-w-[14rem] truncate text-xs text-gray-500 sm:max-w-none">{employee.email}</p>
                       </div>
                     </div>
 
                     {/* Schedule Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
                       {nextSevenDays.map((day) => {
                         const dayKey = day.toISOString().slice(0, 10);
                         const scheduledWorkspaces = getScheduleForEmployeeAndDay(employee.id, dayKey);
@@ -285,7 +285,7 @@ export default function ManagerDashboard() {
                         return (
                           <div
                             key={`${employee.id}-${dayKey}`}
-                            className={`p-3 rounded-lg border-2 text-center ${scheduledWorkspaces.length > 0
+                              className={`rounded-lg border-2 p-3 text-center ${scheduledWorkspaces.length > 0
                                 ? 'border-emerald-200 bg-emerald-50'
                                 : 'border-gray-200 bg-gray-50'
                               }`}
@@ -297,7 +297,7 @@ export default function ManagerDashboard() {
                               <p className="text-lg text-gray-300">—</p>
                             )}
                             {scheduledWorkspaces.length > 0 && (
-                              <p className="text-xs text-emerald-600 mt-1">{scheduledWorkspaces.length} shoot{scheduledWorkspaces.length > 1 ? 's' : ''}</p>
+                              <p className="mt-1 text-xs text-emerald-600">{scheduledWorkspaces.length} shoot{scheduledWorkspaces.length > 1 ? 's' : ''}</p>
                             )}
                           </div>
                         );
@@ -308,7 +308,7 @@ export default function ManagerDashboard() {
               </div>
             </>
           ) : (
-            <div className="p-8 md:p-12 text-center text-gray-600">
+            <div className="p-8 text-center text-gray-600 md:p-12">
               <p className="text-lg">📭 No employees found</p>
               <p className="text-sm mt-2">Employees will appear here once assigned to shoots</p>
             </div>
@@ -316,38 +316,38 @@ export default function ManagerDashboard() {
         </div>
 
         {/* Task Assignments */}
-        <div className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-indigo-700 to-blue-700 px-4 md:px-6 py-4">
-            <h2 className="text-lg md:text-xl font-bold text-white">Task Assignments</h2>
-            <p className="text-indigo-100 text-xs md:text-sm mt-1">See which employee is assigned to each task in every shoot</p>
+        <div className="mt-8 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="bg-gradient-to-r from-indigo-700 to-blue-700 px-4 py-4 sm:px-6">
+            <h2 className="text-lg font-bold text-white sm:text-xl">Task Assignments</h2>
+            <p className="mt-1 text-xs text-indigo-100 sm:text-sm">See which employee is assigned to each task in every shoot</p>
           </div>
 
           {workspaces.length > 0 ? (
             <div className="divide-y divide-gray-200">
               {workspaces.map((workspace) => (
-                <div key={workspace.id} className="p-4 md:p-6">
-                  <div className="flex items-start justify-between gap-4 mb-4">
+                <div key={workspace.id} className="p-4 sm:p-6">
+                  <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                     <div>
-                      <h3 className="text-base md:text-lg font-semibold text-gray-900">{workspace.title}</h3>
+                      <h3 className="text-base font-semibold text-gray-900 sm:text-lg">{workspace.title}</h3>
                       <p className="text-sm text-gray-500">{workspace.taskCount} task{workspace.taskCount === 1 ? '' : 's'}</p>
                     </div>
                   </div>
 
                   {workspace.tasks?.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                       {workspace.tasks.map((task) => (
                         <div key={task.id} className="rounded-xl border border-gray-200 bg-slate-50 p-4">
-                          <div className="flex items-start justify-between gap-3 mb-3">
+                          <div className="mb-3 flex items-start justify-between gap-3">
                             <div>
                               <p className="font-semibold text-gray-900">{task.title}</p>
                               <p className="text-xs text-gray-500 mt-1">{task.priority} priority</p>
                             </div>
-                            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${task.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' : task.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' : task.status === 'IN_REVIEW' ? 'bg-amber-100 text-amber-700' : task.status === 'REJECTED' ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-700'}`}>
+                            <span className={`rounded-full px-2 py-1 text-xs font-semibold ${task.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' : task.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' : task.status === 'IN_REVIEW' ? 'bg-amber-100 text-amber-700' : task.status === 'REJECTED' ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-700'}`}>
                               {task.status}
                             </span>
                           </div>
 
-                          <div className="text-sm text-gray-700 space-y-1">
+                          <div className="space-y-1 text-sm text-gray-700">
                             <p>
                               <span className="font-medium text-gray-900">Assigned to:</span>{' '}
                               {task.assignee?.name || 'Unassigned'}
@@ -375,7 +375,7 @@ export default function ManagerDashboard() {
               ))}
             </div>
           ) : (
-            <div className="p-8 md:p-12 text-center text-gray-600">
+            <div className="p-8 text-center text-gray-600 md:p-12">
               <p className="text-lg">No task assignments yet</p>
               <p className="text-sm mt-2">Task details will appear here once you start assigning employees</p>
             </div>

@@ -34,7 +34,7 @@ export default function NotificationPopup({ notification, onClose, onMarkRead, o
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
@@ -42,24 +42,24 @@ export default function NotificationPopup({ notification, onClose, onMarkRead, o
       />
 
       {/* Notification Card - Responsive */}
-      <div className={`relative rounded-2xl shadow-2xl max-w-md w-full animate-in fade-in zoom-in duration-300 ${notification?.type?.includes('TASK_REMINDER') ? 'bg-white border-2 border-red-100' : 'bg-white'}`}>
+      <div className={`relative w-full max-w-md overflow-hidden rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-300 ${notification?.type?.includes('TASK_REMINDER') ? 'border-2 border-red-100 bg-white' : 'bg-white'}`}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-4 border-b border-amber-200 rounded-t-2xl">
+        <div className="border-b border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-4 sm:px-6">
           <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3 flex-1">
-              <div className="text-4xl flex-shrink-0">{notification?.type?.includes('TASK_REMINDER') ? '🚨' : '⚠️'}</div>
+            <div className="flex flex-1 items-start gap-3">
+              <div className="flex-shrink-0 text-3xl sm:text-4xl">{notification?.type?.includes('TASK_REMINDER') ? '🚨' : '⚠️'}</div>
               <div>
-                <h3 className="font-bold text-gray-900 text-lg">
+                <h3 className="text-lg font-bold text-gray-900">
                   {notification?.type?.includes('TASK_REMINDER') ? 'Unassigned Employees — Action Required' : 'Pending Task Assignments'}
                 </h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="mt-1 text-sm text-gray-600">
                   {notification?.type?.includes('TASK_REMINDER') ? 'Some employees are not assigned to any workspace for tomorrow.' : 'Action required for task assignments'}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 text-2xl w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg transition flex-shrink-0"
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-2xl text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
             >
               ✕
             </button>
@@ -67,28 +67,28 @@ export default function NotificationPopup({ notification, onClose, onMarkRead, o
         </div>
 
         {/* Content */}
-        <div className="px-6 py-6">
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+        <div className="px-4 py-5 sm:px-6">
+          <div className="mb-6 rounded-lg bg-gray-50 p-4">
             <p className="text-gray-800 leading-relaxed font-medium whitespace-pre-wrap">
               {notification?.message}
             </p>
           </div>
 
           {notification?.type?.includes('TASK_REMINDER') && (
-            <div className="mb-6 px-2">
+            <div className="mb-6 px-0 sm:px-2">
               <button
                 onClick={() => {
                   onClose();
                   navigate('/dashboard');
                 }}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-3 font-semibold text-white hover:bg-red-700"
               >
                 Assign Now
               </button>
             </div>
           )}
 
-          <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
+          <div className="mb-4 flex items-center justify-between gap-3 text-xs text-gray-500">
             <span className="flex items-center gap-1">
               📅 {formatTime(notification?.createdAt)}
             </span>
@@ -103,10 +103,10 @@ export default function NotificationPopup({ notification, onClose, onMarkRead, o
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-3 px-6 py-4 bg-gray-50 rounded-b-2xl border-t border-gray-200">
+        <div className="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 px-4 py-4 sm:flex-row sm:px-6">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition font-semibold text-sm"
+            className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
           >
             Dismiss
           </button>
@@ -114,7 +114,7 @@ export default function NotificationPopup({ notification, onClose, onMarkRead, o
             <button
               onClick={handleMarkRead}
               disabled={isMarking}
-              className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold text-sm disabled:opacity-50"
+              className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
             >
               {isMarking ? 'Marking...' : 'Mark as Read'}
             </button>
@@ -122,7 +122,7 @@ export default function NotificationPopup({ notification, onClose, onMarkRead, o
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="px-4 py-2.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition font-semibold text-sm disabled:opacity-50"
+            className="rounded-lg bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-50 sm:px-4"
             title="Delete notification"
           >
             {isDeleting ? '...' : '🗑️'}

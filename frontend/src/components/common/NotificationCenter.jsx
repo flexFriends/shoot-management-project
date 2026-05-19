@@ -101,30 +101,30 @@ export default function NotificationCenter() {
 
       {/* Modal Overlay for Notifications - Teleported to Document Body */}
       {showDropdown && createPortal(
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-3 backdrop-blur-sm sm:p-4">
           {/* Backdrop Click to Close */}
           <div className="absolute inset-0" onClick={() => setShowDropdown(false)} />
 
           {/* Modal Content Panel */}
-          <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-100 max-w-xl w-full max-h-[75vh] flex flex-col animate-in fade-in zoom-in duration-200 z-50">
+          <div className="relative z-50 flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl animate-in fade-in zoom-in duration-200 sm:max-h-[75vh]">
             {/* Header */}
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-t-2xl">
-              <div>
-                <h3 className="font-bold text-gray-900 text-xl">All Notifications</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Stay updated on your workspace and task assignments</p>
+            <div className="flex items-start justify-between gap-3 border-b border-gray-100 bg-gradient-to-r from-slate-50 to-blue-50/30 p-4 sm:p-5">
+              <div className="min-w-0">
+                <h3 className="text-lg font-bold text-gray-900 sm:text-xl">All Notifications</h3>
+                <p className="mt-0.5 text-xs text-gray-500 sm:text-sm">Stay updated on your workspace and task assignments</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2">
                 {unreadCount > 0 && (
                   <button
                     onClick={handleMarkAllAsRead}
-                    className="text-xs px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-full transition font-semibold"
+                    className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
                   >
                     Mark all read
                   </button>
                 )}
                 <button
                   onClick={() => setShowDropdown(false)}
-                  className="text-gray-400 hover:text-gray-600 text-xl w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg transition"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-xl text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
                 >
                   ✕
                 </button>
@@ -132,9 +132,9 @@ export default function NotificationCenter() {
             </div>
 
             {/* Notifications List */}
-            <div className="overflow-y-auto flex-1 divide-y divide-gray-50">
+            <div className="flex-1 divide-y divide-gray-50 overflow-y-auto">
               {isLoading ? (
-                <div className="p-8 text-center text-gray-500 font-medium">Loading notifications...</div>
+                <div className="p-8 text-center font-medium text-gray-500">Loading notifications...</div>
               ) : notifications.length === 0 ? (
                 <div className="py-16 px-6 text-center text-gray-500">
                   <p className="text-5xl mb-3">📭</p>
@@ -145,7 +145,7 @@ export default function NotificationCenter() {
                 notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className={`p-5 hover:bg-slate-50/60 transition cursor-pointer flex items-start justify-between gap-4 group ${
+                    className={`group flex cursor-pointer items-start justify-between gap-4 p-4 transition hover:bg-slate-50/60 sm:p-5 ${
                       !notification.isRead ? 'bg-blue-50/40 border-l-4 border-blue-600 pl-4' : 'pl-5'
                     }`}
                   >
@@ -157,15 +157,15 @@ export default function NotificationCenter() {
                         setShowPopup(true);
                       }}
                     >
-                      <div className="flex items-start gap-4">
-                        <span className="text-3xl flex-shrink-0">
+                      <div className="flex items-start gap-3 sm:gap-4">
+                        <span className="flex-shrink-0 text-2xl sm:text-3xl">
                           {notification.type?.includes('HR') ? '👩‍💼' : notification.type?.includes('ADMIN') ? '⚡' : '⚠️'}
                         </span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 leading-relaxed break-words">
+                          <p className="break-words text-sm font-semibold leading-relaxed text-gray-900">
                             {notification.message}
                           </p>
-                          <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
+                          <p className="mt-1.5 flex items-center gap-1 text-xs text-gray-400">
                             📅 {new Date(notification.createdAt).toLocaleString('en-IN', {
                               day: '2-digit',
                               month: 'short',
@@ -185,7 +185,7 @@ export default function NotificationCenter() {
                         e.stopPropagation();
                         handleDelete(notification.id);
                       }}
-                      className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 text-red-500 hover:text-red-700 rounded-lg text-lg transition flex-shrink-0"
+                      className="flex-shrink-0 rounded-lg p-2 text-lg text-red-500 transition opacity-0 hover:bg-red-50 hover:text-red-700 group-hover:opacity-100"
                       title="Delete notification"
                     >
                       🗑️
@@ -196,10 +196,10 @@ export default function NotificationCenter() {
             </div>
 
             {/* Footer */}
-            <div className="p-4 bg-slate-50 border-t border-gray-100 text-right rounded-b-2xl">
+            <div className="border-t border-gray-100 bg-slate-50 p-4 text-right">
               <button
                 onClick={() => setShowDropdown(false)}
-                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition font-semibold text-sm shadow-md shadow-indigo-100"
+                className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-100 transition hover:bg-indigo-700"
               >
                 Close Panel
               </button>

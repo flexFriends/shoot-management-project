@@ -53,16 +53,16 @@ export default function CreateWorkspace() {
       <Sidebar />
 
       {/* Main Content */}
-      <main className="flex-1 ml-64 overflow-auto">
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-8">
+      <main className="flex-1 ml-0 md:ml-64 pt-16 md:pt-0 overflow-auto">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900">Create New Shoot </h1>
-            <p className="text-gray-600 mt-2">Set up a new project workspace for your team</p>
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-4xl">Create New Shoot</h1>
+            <p className="mt-2 text-sm text-gray-600 sm:text-base">Set up a new project workspace for your team</p>
           </div>
 
           {/* Main Content */}
-          <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+          <div className="mx-auto w-full max-w-4xl rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-8">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Basic Info */}
             <div className="border-b pb-6">
@@ -201,18 +201,18 @@ export default function CreateWorkspace() {
             </div>
 
             {/* Buttons */}
-            <div className="flex gap-4 pt-6 border-t">
+            <div className="flex flex-col gap-3 pt-6 border-t sm:flex-row">
               <button
                 type="button"
                 onClick={() => navigate('/dashboard')}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition sm:w-auto"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium disabled:opacity-50"
+                className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:opacity-50 sm:w-auto"
               >
                 {isLoading ? 'Creating...' : 'Create Shoot'}
               </button>

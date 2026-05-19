@@ -90,20 +90,18 @@ export default function Workspaces() {
       <Sidebar />
 
       {/* Main Content */}
-      <main className="flex-1 ml-64 overflow-auto">
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-8">
+      <main className="flex-1 ml-0 md:ml-64 pt-16 md:pt-0 overflow-auto">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
           {/* Header */}
-          <div className="mb-8 flex items-center justify-between">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900">Shoots </h1>
-              <p className="text-gray-600 mt-2">
-                Manage your studios and projects
-              </p>
+              <h1 className="text-2xl font-bold text-gray-900 sm:text-4xl">Shoots</h1>
+              <p className="mt-2 text-sm text-gray-600 sm:text-base">Manage your studios and projects</p>
             </div>
             {isManager && (
               <button
                 onClick={handleCreateWorkspace}
-                className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium flex items-center gap-2"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-700 sm:w-auto sm:px-6 sm:py-3"
               >
                 <span>+</span>
                 <span>New Shoot</span>

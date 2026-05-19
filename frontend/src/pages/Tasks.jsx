@@ -101,19 +101,19 @@ export default function Tasks() {
   const statuses = ['all', 'ASSIGNED', 'IN_PROGRESS', 'IN_REVIEW', 'COMPLETED', 'REJECTED'];
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
       {/* Sidebar Navigation */}
       <Sidebar />
 
       {/* Main Content */}
-      <main className="flex-1 ml-64 overflow-auto">
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-8">
+      <main className="flex-1 ml-0 md:ml-64 pt-16 md:pt-0 overflow-auto transition-all duration-300">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-4xl">
               {isManager ? 'All Tasks' : 'My Tasks'} 📋
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="mt-2 text-sm text-gray-600 sm:text-base">
               {isManager
                 ? 'View and manage all tasks across your shoots'
                 : 'Your assigned tasks and their status'}
@@ -121,12 +121,12 @@ export default function Tasks() {
           </div>
 
           {/* Filter Status Tabs */}
-          <div className="mb-8 flex flex-wrap gap-2 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="mb-8 flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:flex-wrap sm:items-center">
             {statuses.map((status) => (
               <button
                 key={status}
                 onClick={() => setSelectedStatus(status)}
-                className={`px-4 py-2 rounded-lg font-medium transition ${
+                className={`rounded-lg px-4 py-2 font-medium transition ${
                   selectedStatus === status
                     ? 'bg-indigo-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -135,7 +135,7 @@ export default function Tasks() {
                 {status === 'all' ? 'All Tasks' : status}
               </button>
             ))}
-            <div className="ml-auto text-sm text-gray-600 flex items-center">
+            <div className="flex items-center text-sm text-gray-600 sm:ml-auto">
               <span className="font-semibold text-gray-900">{tasks.length}</span>
               <span className="ml-1">task{tasks.length !== 1 ? 's' : ''}</span>
             </div>
@@ -157,16 +157,16 @@ export default function Tasks() {
                     navigate(`/workspaces/${task.workspaceId}/tasks/${task.id}`)
                   }
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                     {/* Status Icon */}
-                    <div className="text-2xl mt-1 flex-shrink-0">
+                    <div className="text-2xl flex-shrink-0 sm:mt-1">
                       {getStatusIcon(task.status)}
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex-1 min-w-0">
                           <h3 className={`font-semibold text-gray-900 group-hover:text-indigo-600 transition ${
                             task.status === 'COMPLETED' ? 'line-through text-gray-600' : ''
                           }`}>
@@ -179,14 +179,14 @@ export default function Tasks() {
                           )}
                         </div>
                         {task.priority && (
-                          <span className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap flex-shrink-0 ${getPriorityColor(task.priority)}`}>
+                          <span className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap flex-shrink-0 self-start ${getPriorityColor(task.priority)}`}>
                             {task.priority}
                           </span>
                         )}
                       </div>
 
                       {/* Meta Info */}
-                      <div className="mt-3 flex items-center flex-wrap gap-3">
+                      <div className="mt-3 flex flex-wrap items-center gap-3">
                         <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full font-medium">
                           🏢 {task.workspaceTitle}
                         </span>
