@@ -11,6 +11,9 @@ router.use(authenticate);
 router.get('/dashboard/manager', workspaceController.getManagerDashboard);
 router.get('/dashboard/employee', workspaceController.getEmployeeDashboard);
 
+// Audit endpoint: list unassigned employees for tomorrow for a manager
+router.get('/admin/unassigned-employees', workspaceController.getUnassignedEmployeesAudit);
+
 // CRUD operations
 router.post('/', authorize('MANAGER', 'ADMIN'), workspaceController.createWorkspace);
 router.get('/', workspaceController.getWorkspaces);

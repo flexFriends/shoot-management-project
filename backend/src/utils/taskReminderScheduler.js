@@ -470,3 +470,5 @@ export default {
   getAllManagers,
   getUsersByRole,
 };
+
+export { getTomorrowRange };

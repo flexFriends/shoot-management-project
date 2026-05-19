@@ -1,4 +1,5 @@
 import { prisma } from '../config/db.js';
+import { getUnassignedEmployees as computeUnassignedEmployees } from '../utils/taskReminderScheduler.js';
 
 /**
  * Create workspace
@@ -441,6 +442,15 @@ export const getManagerDashboard = async (managerId) => {
       })),
     })),
   };
+};
+
+/**
+ * Audit helper: return unassigned employees for tomorrow for manager
+ */
+export const getUnassignedEmployeesForManager = async (managerId) => {
+  // Delegate to the scheduler utility which already computes unassigned employees
+  const missing = await computeUnassignedEmployees(managerId);
+  return missing;
 };
 
 /**

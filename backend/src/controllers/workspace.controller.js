@@ -270,6 +270,16 @@ export const getManagerDashboard = async (req, res, next) => {
   }
 };
 
+export const getUnassignedEmployeesAudit = async (req, res, next) => {
+  try {
+    const managerId = req.query.managerId || req.user.userId;
+    const result = await workspaceService.getUnassignedEmployeesForManager(managerId);
+    return successResponse(res, 200, result, 'Unassigned employees fetched');
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+
 /**
  * Get employee dashboard stats
  */
@@ -292,5 +302,6 @@ export default {
   removeMember,
   getActivity,
   getManagerDashboard,
+  getUnassignedEmployeesAudit,
   getEmployeeDashboard,
 };
