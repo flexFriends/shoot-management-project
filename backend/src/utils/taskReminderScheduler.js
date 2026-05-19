@@ -463,6 +463,20 @@ export const initTaskReminderScheduler = () => {
   console.log('[Task Reminder] Scheduler initialized with Asia/Kolkata timezone');
 };
 
+/**
+ * Trigger reminder and escalation jobs on-demand (protected endpoint uses this).
+ * Useful for environments where background schedulers are not available and
+ * a hosted cron (Render/Vercel scheduler) can call an endpoint to run jobs.
+ */
+export const triggerReminderJobs = async () => {
+  // Run the manager reminder job once (labelled Manual)
+  await runManagerReminderJob('Manual Run');
+
+  // Run escalation checks for HR and ADMIN once
+  await runEscalationJob({ label: 'Manual HR Escalation', recipientsRole: 'HR', notificationType: 'TASK_REMINDER_HR' });
+  await runEscalationJob({ label: 'Manual Admin Escalation', recipientsRole: 'ADMIN', notificationType: 'TASK_REMINDER_ADMIN' });
+};
+
 export default {
   initTaskReminderScheduler,
   notifyManagerOnLogin,

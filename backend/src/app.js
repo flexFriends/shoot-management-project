@@ -11,6 +11,7 @@ import authRoutes from './routes/auth.routes.js';
 import workspaceRoutes from './routes/workspace.routes.js';
 import taskRoutes from './routes/task.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
+import internalRoutes from './routes/internal.routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -81,6 +82,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/workspaces', workspaceRoutes);
 app.use('/api/workspaces/:workspaceId/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/internal', internalRoutes);
 
 // 404 handler
 app.use((req, res) => {
