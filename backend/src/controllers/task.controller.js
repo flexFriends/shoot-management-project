@@ -34,17 +34,30 @@ export const createTask = async (req, res, next) => {
         // Skip empty values
         return acc;
       }
-      // Convert date strings to ISO-8601 DateTime format
-      if (key === 'dueDate' && typeof value === 'string') {
-        // If it's just a date string (YYYY-MM-DD), append T00:00:00Z
-        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-          acc[key] = `${value}T00:00:00Z`;
-        } else {
-          acc[key] = value;
+
+      if (typeof value === 'string') {
+        const trimmedValue = value.trim();
+        if (trimmedValue === '') {
+          return acc;
         }
-      } else {
-        acc[key] = value;
+
+        if (key === 'title' || key === 'description' || key === 'referenceLink') {
+          acc[key] = trimmedValue;
+          return acc;
+        }
+
+        if (key === 'dueDate') {
+          if (/^\d{4}-\d{2}-\d{2}$/.test(trimmedValue)) {
+            acc[key] = `${trimmedValue}T00:00:00Z`;
+          } else {
+            acc[key] = trimmedValue;
+          }
+          return acc;
+        }
       }
+
+      // Convert date strings to ISO-8601 DateTime format
+      acc[key] = value;
       return acc;
     }, {});
     

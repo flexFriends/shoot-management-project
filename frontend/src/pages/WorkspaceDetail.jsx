@@ -63,19 +63,28 @@ export default function WorkspaceDetail() {
 
   const handleCreateTask = async (e) => {
     e.preventDefault();
-    if (!taskForm.title.trim()) return toast.error('Task title required');
+    const title = taskForm.title.trim();
+    const description = taskForm.description.trim();
+    const referenceLink = taskForm.referenceLink.trim();
+    const dueDate = taskForm.dueDate.trim();
+
+    if (!title) return toast.error('Task title required');
     try {
-      const payload = { title: taskForm.title, priority: taskForm.priority, status: 'TODO' };
-      if (taskForm.description) payload.description = taskForm.description;
-      if (taskForm.referenceLink) payload.referenceLink = taskForm.referenceLink;
-      if (taskForm.dueDate) payload.dueDate = taskForm.dueDate;
+      const payload = { title, priority: taskForm.priority, status: 'TODO' };
+      if (description) payload.description = description;
+      if (referenceLink) payload.referenceLink = referenceLink;
+      if (dueDate) payload.dueDate = dueDate;
       await taskApi.create(workspaceId, payload);
       toast.success('Task created');
       setTaskForm({ title: '', description: '', dueDate: '', referenceLink: '', priority: 'MEDIUM' });
       setShowCreateTask(false);
       refetchTasks();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create task');
+      const details = err.response?.data?.data?.details;
+      const validationMessage = Array.isArray(details)
+        ? details.map((item) => item?.message).filter(Boolean).join(', ')
+        : '';
+      toast.error(validationMessage || err.response?.data?.message || 'Failed to create task');
     }
   };
 
