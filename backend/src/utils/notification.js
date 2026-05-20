@@ -35,15 +35,40 @@ const getTransporter = () => {
 
   const secure = Number(port) === 465;
 
+  // transporter = nodemailer.createTransport({
+  //   host,
+  //   port,
+  //   secure,
+  //   auth: {
+  //     user,
+  //     pass,
+  //   },
+  // });
+
   transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure,
-    auth: {
-      user,
-      pass,
-    },
-  });
+  host,
+  port,
+  secure,
+  auth: {
+    user,
+    pass,
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
+});
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('[Email] SMTP verification failed:', {
+      message: error.message,
+      code: error.code,
+      response: error.response,
+    });
+  } else {
+    console.log('[Email] SMTP server is ready');
+  }
+});
 
   return transporter;
 };
