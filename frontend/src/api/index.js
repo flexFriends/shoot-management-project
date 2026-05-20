@@ -148,10 +148,10 @@ export const notificationApi = {
     axiosInstance.patch(`/notifications/${notificationId}/read`),
 
   markAllAsRead: () =>
-    axiosInstance.patch("/api/notifications/read-all"),
+    axiosInstance.patch("/notifications/read-all"),
 
   delete: (notificationId) =>
-    axiosInstance.delete(`/api/notifications/${notificationId}`),
+    axiosInstance.delete(`/notifications/${notificationId}`),
 };
 
 export default {
