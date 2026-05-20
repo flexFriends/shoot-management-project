@@ -69,17 +69,17 @@ export default function EmployeeDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <StatCard
-          label="Total allocated workspaces"
+          label="Total Shoots"
           value={stats.totalAllocatedWorkspaces || 0}
           subtext="All workspaces assigned to you"
         />
         <StatCard
-          label="Today's active workspaces"
+          label="Today's active shoots"
           value={stats.todayActiveWorkspaces || 0}
           subtext={formatDate(today)}
         />
         <StatCard
-          label="Allocated today"
+          label="Shoots assigned today"
           value={stats.allocatedToday || 0}
           subtext="Workspaces assigned on this date"
         />

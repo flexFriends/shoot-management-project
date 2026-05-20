@@ -263,14 +263,14 @@ export default function WorkspaceDetail() {
           {/* Tasks */}
           <div className="bg-white rounded-lg shadow p-4 sm:p-6">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="font-semibold">Tasks</h2>
-              {isManager && <button onClick={() => setShowCreateTask((s) => !s)} className="inline-flex w-full justify-center rounded bg-indigo-600 px-3 py-2 text-white sm:w-auto">{showCreateTask ? 'Cancel' : 'New Task'}</button>}
+              <h2 className="font-semibold">Shoot requirements</h2>
+              {isManager && <button onClick={() => setShowCreateTask((s) => !s)} className="inline-flex w-full justify-center rounded bg-indigo-600 px-3 py-2 text-white sm:w-auto">{showCreateTask ? 'Cancel' : 'Add new requirement'}</button>}
             </div>
 
             {showCreateTask && (
               <form onSubmit={handleCreateTask} className="mb-4 space-y-3">
                 <input value={taskForm.title} onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })} placeholder="Title" className="w-full border px-3 py-2 rounded" />
-                <textarea value={taskForm.description} onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })} placeholder="Description" rows={3} className="w-full border px-3 py-2 rounded" />
+                <textarea value={taskForm.description} onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })} placeholder="Script" rows={3} className="w-full border px-3 py-2 rounded" />
                 <input
                   type="url"
                   value={taskForm.referenceLink}

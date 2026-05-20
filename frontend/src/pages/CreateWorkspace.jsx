@@ -214,7 +214,7 @@ export default function CreateWorkspace() {
                 disabled={isLoading}
                 className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:opacity-50 sm:w-auto"
               >
-                {isLoading ? 'Creating...' : 'Create Shoot'}
+                {isLoading ? 'Proceeding...' : 'Proceed for create shoot'}
               </button>
             </div>
           </form>
