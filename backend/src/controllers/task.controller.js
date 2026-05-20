@@ -12,6 +12,7 @@ const createTaskSchema = z.object({
   assigneeId: z.string().optional(),
   dueDate: z.string().datetime().optional(),
   order: z.number().default(0),
+  orientation: z.enum(['HORIZONTAL', 'VERTICAL']).optional().default('HORIZONTAL'),
 });
 
 const updateTaskSchema = createTaskSchema.partial();

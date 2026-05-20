@@ -8,10 +8,13 @@ const createWorkspaceSchema = z.object({
   shootLocation: z.string().nullable().optional(),
   shootDate: z.string().nullable().optional(),
   setupType: z.enum(['PREMIUM', 'VERY_PREMIUM', 'PHONE_SETUP']),
-  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
-  status: z.enum(['DRAFT', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED']).default('DRAFT'),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional().default('MEDIUM'),
+  status: z.enum(['DRAFT', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED']).optional().default('DRAFT'),
   notes: z.string().nullable().optional(),
   coverImage: z.string().nullable().optional(),
+  totalVideos: z.coerce.number().nonnegative().optional().default(0),
+  totalPics: z.coerce.number().nonnegative().optional().default(0),
+  arrivalTime: z.string().nullable().optional(),
 });
 
 const updateWorkspaceSchema = createWorkspaceSchema.partial();

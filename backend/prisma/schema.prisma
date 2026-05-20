@@ -118,6 +118,9 @@ model Workspace {
   status        WorkspaceStatus   @default(DRAFT)
   notes         String?
   coverImage    String?
+  totalVideos   Int               @default(0)
+  totalPics     Int               @default(0)
+  arrivalTime   String?
   createdById   String
   createdBy     User              @relation("WorkspaceCreator", fields: [createdById], references: [id])
   createdAt     DateTime          @default(now())
@@ -154,6 +157,7 @@ model TodoTask {
   referenceLink   String?
   status          TaskStatus @default(TODO)
   priority        WorkspacePriority @default(MEDIUM)
+  orientation     String?
   assigneeId      String?
   createdById     String
   dueDate         DateTime?

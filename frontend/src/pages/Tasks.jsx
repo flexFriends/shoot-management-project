@@ -190,6 +190,15 @@ export default function Tasks() {
                         <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full font-medium">
                           🏢 {task.workspaceTitle}
                         </span>
+                        {task.orientation && (
+                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                            task.orientation === 'VERTICAL'
+                              ? 'bg-pink-100 text-pink-700'
+                              : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            🎬 {task.orientation === 'VERTICAL' ? 'Vertical' : 'Horizontal'}
+                          </span>
+                        )}
                         {task.referenceLink && (
                           <a
                             href={task.referenceLink}

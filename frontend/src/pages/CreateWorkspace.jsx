@@ -13,8 +13,9 @@ const createWorkspaceSchema = z.object({
   shootLocation: z.string().optional(),
   shootDate: z.string().optional(),
   setupType: z.enum(['PREMIUM', 'VERY_PREMIUM', 'PHONE_SETUP']),
-  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
-  status: z.enum(['DRAFT', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED']).default('DRAFT'),
+  totalVideos: z.coerce.number().nonnegative().optional().default(0),
+  totalPics: z.coerce.number().nonnegative().optional().default(0),
+  arrivalTime: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -146,43 +147,56 @@ export default function CreateWorkspace() {
               </div>
             </div>
 
-            {/* Project Settings */}
+            {/* Shoot Deliverables & Schedule */}
             <div className="border-b pb-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Project Settings</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Shoot Deliverables & Schedule</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Priority
+                    Total Videos
                   </label>
-                  <select
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="e.g., 2"
+                    defaultValue="0"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    {...register('priority')}
-                  >
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                    <option value="URGENT">Urgent</option>
-                  </select>
+                    {...register('totalVideos')}
+                  />
+                  {errors.totalVideos && (
+                    <p className="text-red-500 text-sm mt-1">{errors.totalVideos.message}</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Status
+                    Total Pics
                   </label>
-                  <select
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="e.g., 5"
+                    defaultValue="0"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    {...register('status')}
-                  >
-                    <option value="DRAFT">Draft</option>
-                    <option value="ACTIVE">Active</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="ARCHIVED">Archived</option>
-                  </select>
+                    {...register('totalPics')}
+                  />
+                  {errors.totalPics && (
+                    <p className="text-red-500 text-sm mt-1">{errors.totalPics.message}</p>
+                  )}
                 </div>
 
-
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Arrival Time
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., 10:00 AM"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    {...register('arrivalTime')}
+                  />
+                </div>
               </div>
             </div>
 

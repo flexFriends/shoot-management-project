@@ -456,9 +456,24 @@ export default function Workspaces() {
                           <h3 className="font-bold text-lg text-gray-900 group-hover:text-indigo-600 transition">
                             {ws.title}
                           </h3>
-                          <p className="text-gray-600 text-sm mt-2 line-clamp-2">
-                            {ws.description}
-                          </p>
+                          {ws.description && (
+                            <p className="text-gray-600 text-sm mt-2 line-clamp-2">
+                              {ws.description}
+                            </p>
+                          )}
+                          {(ws.totalVideos !== undefined || ws.totalPics !== undefined || ws.arrivalTime) && (
+                            <div className="mt-3 flex flex-wrap gap-1.5 text-xs text-gray-600">
+                              {ws.totalVideos !== undefined && (
+                                <span className="rounded-full bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 font-medium">🎬 {ws.totalVideos} vids</span>
+                              )}
+                              {ws.totalPics !== undefined && (
+                                <span className="rounded-full bg-pink-50 text-pink-700 border border-pink-100 px-2 py-0.5 font-medium">📸 {ws.totalPics} pics</span>
+                              )}
+                              {ws.arrivalTime && (
+                                <span className="rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 px-2 py-0.5 font-medium">🕒 {ws.arrivalTime}</span>
+                              )}
+                            </div>
+                          )}
                           <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
                             <span className="text-xs text-gray-500">
                               <span className="font-semibold text-gray-900">

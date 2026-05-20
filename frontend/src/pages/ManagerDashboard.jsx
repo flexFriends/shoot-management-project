@@ -340,7 +340,18 @@ export default function ManagerDashboard() {
                           <div className="mb-3 flex items-start justify-between gap-3">
                             <div>
                               <p className="font-semibold text-gray-900">{task.title}</p>
-                              <p className="text-xs text-gray-500 mt-1">{task.priority} priority</p>
+                              <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                <span className="text-xs text-gray-500">{task.priority} priority</span>
+                                {task.orientation && (
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                                    task.orientation === 'VERTICAL'
+                                      ? 'bg-pink-100 text-pink-700'
+                                      : 'bg-blue-100 text-blue-700'
+                                  }`}>
+                                    {task.orientation === 'VERTICAL' ? 'Vertical' : 'Horizontal'}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             <span className={`rounded-full px-2 py-1 text-xs font-semibold ${task.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' : task.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' : task.status === 'IN_REVIEW' ? 'bg-amber-100 text-amber-700' : task.status === 'REJECTED' ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-700'}`}>
                               {task.status}

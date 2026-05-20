@@ -22,8 +22,9 @@ export default function WorkspaceEdit() {
     shootLocation: '',
     shootDate: '',
     setupType: 'PREMIUM',
-    priority: 'MEDIUM',
-    status: 'DRAFT',
+    totalVideos: 0,
+    totalPics: 0,
+    arrivalTime: '',
     notes: '',
     coverImage: '',
   });
@@ -45,8 +46,9 @@ export default function WorkspaceEdit() {
       shootLocation: workspace.shootLocation || '',
       shootDate: formatDateInput(workspace.shootDate),
       setupType: workspace.setupType || 'PREMIUM',
-      priority: workspace.priority || 'MEDIUM',
-      status: workspace.status || 'DRAFT',
+      totalVideos: workspace.totalVideos !== undefined ? workspace.totalVideos : 0,
+      totalPics: workspace.totalPics !== undefined ? workspace.totalPics : 0,
+      arrivalTime: workspace.arrivalTime || '',
       notes: workspace.notes || '',
       coverImage: workspace.coverImage || '',
     });
@@ -186,36 +188,40 @@ export default function WorkspaceEdit() {
               </div>
 
               <div className="border-b pb-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Project Settings</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Shoot Deliverables & Schedule</h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                    <select
-                      value={form.priority}
-                      onChange={(event) => setForm({ ...form, priority: event.target.value })}
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Total Videos</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={form.totalVideos}
+                      onChange={(event) => setForm({ ...form, totalVideos: Number(event.target.value) })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    >
-                      <option value="LOW">Low</option>
-                      <option value="MEDIUM">Medium</option>
-                      <option value="HIGH">High</option>
-                      <option value="URGENT">Urgent</option>
-                    </select>
+                    />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <select
-                      value={form.status}
-                      onChange={(event) => setForm({ ...form, status: event.target.value })}
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Total Pics</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={form.totalPics}
+                      onChange={(event) => setForm({ ...form, totalPics: Number(event.target.value) })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    >
-                      <option value="DRAFT">Draft</option>
-                      <option value="ACTIVE">Active</option>
-                      <option value="IN_PROGRESS">In Progress</option>
-                      <option value="COMPLETED">Completed</option>
-                      <option value="ARCHIVED">Archived</option>
-                    </select>
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Arrival Time</label>
+                    <input
+                      type="text"
+                      value={form.arrivalTime}
+                      onChange={(event) => setForm({ ...form, arrivalTime: event.target.value })}
+                      placeholder="e.g., 10:00 AM"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
                   </div>
                 </div>
               </div>

@@ -485,6 +485,19 @@ function PriorityBadge({ priority }) {
   );
 }
 
+function OrientationBadge({ orientation }) {
+  if (!orientation) return null;
+  const label = orientation === 'VERTICAL' ? 'Vertical' : 'Horizontal';
+  const color = orientation === 'VERTICAL' ? '#DB2777' : '#2563EB';
+  const bg = orientation === 'VERTICAL' ? '#FCE7F3' : '#DBEAFE';
+  return (
+    <span style={{ background: bg, color: color }}
+      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide border border-transparent">
+      {label}
+    </span>
+  );
+}
+
 function Modal({ title, onClose, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -683,6 +696,7 @@ export default function TaskDetail() {
               <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
                 <StatusBadge status={task.status} />
                 <PriorityBadge priority={task.priority} />
+                <OrientationBadge orientation={task.orientation} />
               </div>
             </div>
 
@@ -713,9 +727,6 @@ export default function TaskDetail() {
                   <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400">Shoot Details</h2>
                   <p className="mt-1 text-lg font-semibold text-gray-900">{workspace.title}</p>
                 </div>
-                <span className="inline-flex w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                  {workspace.status || 'DRAFT'}
-                </span>
               </div>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -735,8 +746,18 @@ export default function TaskDetail() {
                 </div>
 
                 <div className="rounded-xl bg-gray-50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Priority</p>
-                  <p className="text-sm font-medium text-gray-800">{workspace.priority || 'Not provided'}</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Total Videos</p>
+                  <p className="text-sm font-medium text-gray-800">{workspace.totalVideos !== undefined ? workspace.totalVideos : 0}</p>
+                </div>
+
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Total Pics</p>
+                  <p className="text-sm font-medium text-gray-800">{workspace.totalPics !== undefined ? workspace.totalPics : 0}</p>
+                </div>
+
+                <div className="rounded-xl bg-gray-50 p-4 sm:col-span-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Arrival Time</p>
+                  <p className="text-sm font-medium text-gray-800">{workspace.arrivalTime || 'Not provided'}</p>
                 </div>
 
                 {workspace.createdBy && (

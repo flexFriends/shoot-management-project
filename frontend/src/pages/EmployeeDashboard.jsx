@@ -112,7 +112,11 @@ export default function EmployeeDashboard() {
                   <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-600">
                     <span className="rounded-full bg-gray-100 px-2.5 py-1">Shoot: {formatDate(workspace.shootDate)}</span>
                     <span className="rounded-full bg-gray-100 px-2.5 py-1">Tasks: {workspace.taskCount}</span>
-                    <span className="rounded-full bg-gray-100 px-2.5 py-1">Status: {workspace.status}</span>
+                    <span className="rounded-full bg-blue-50 text-blue-700 border border-blue-100 px-2.5 py-1">🎬 {workspace.totalVideos || 0} vids</span>
+                    <span className="rounded-full bg-pink-50 text-pink-700 border border-pink-100 px-2.5 py-1">📸 {workspace.totalPics || 0} pics</span>
+                    {workspace.arrivalTime && (
+                      <span className="rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 px-2.5 py-1">🕒 {workspace.arrivalTime}</span>
+                    )}
                   </div>
                 </Link>
               ))
@@ -141,14 +145,17 @@ export default function EmployeeDashboard() {
                       <p className="font-semibold text-gray-900">{workspace.title}</p>
                       <p className="mt-1 text-sm text-gray-500">Allocated on {formatDate(workspace.allocatedAt)}</p>
                     </div>
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                      {workspace.priority}
-                    </span>
+                    {workspace.arrivalTime && (
+                      <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
+                        🕒 {workspace.arrivalTime}
+                      </span>
+                    )}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-600">
                     <span className="rounded-full bg-gray-100 px-2.5 py-1">Shoot: {formatDate(workspace.shootDate)}</span>
                     <span className="rounded-full bg-gray-100 px-2.5 py-1">Tasks: {workspace.taskCount}</span>
-                    <span className="rounded-full bg-gray-100 px-2.5 py-1">Status: {workspace.status}</span>
+                    <span className="rounded-full bg-blue-50 text-blue-700 border border-blue-100 px-2.5 py-1">🎬 {workspace.totalVideos || 0} vids</span>
+                    <span className="rounded-full bg-pink-50 text-pink-700 border border-pink-100 px-2.5 py-1">📸 {workspace.totalPics || 0} pics</span>
                   </div>
                 </Link>
               ))

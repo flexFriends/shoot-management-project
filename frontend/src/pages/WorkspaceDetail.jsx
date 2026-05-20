@@ -14,7 +14,7 @@ export default function WorkspaceDetail() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState('');
   const [memberRole, setMemberRole] = useState('MEMBER');
-  const [taskForm, setTaskForm] = useState({ title: '', description: '', dueDate: '', referenceLink: '', priority: 'MEDIUM' });
+  const [taskForm, setTaskForm] = useState({ title: '', description: '', dueDate: '', referenceLink: '', priority: 'MEDIUM', orientation: 'HORIZONTAL' });
 
   const { data: workspace, isLoading: wsLoading, refetch: refetchWorkspace } = useQuery({
     queryKey: ['workspace', workspaceId],
@@ -70,13 +70,13 @@ export default function WorkspaceDetail() {
 
     if (!title) return toast.error('Task title required');
     try {
-      const payload = { title, priority: taskForm.priority, status: 'TODO' };
+      const payload = { title, priority: taskForm.priority, status: 'TODO', orientation: taskForm.orientation || 'HORIZONTAL' };
       if (description) payload.description = description;
       if (referenceLink) payload.referenceLink = referenceLink;
       if (dueDate) payload.dueDate = dueDate;
       await taskApi.create(workspaceId, payload);
       toast.success('Task created');
-      setTaskForm({ title: '', description: '', dueDate: '', referenceLink: '', priority: 'MEDIUM' });
+      setTaskForm({ title: '', description: '', dueDate: '', referenceLink: '', priority: 'MEDIUM', orientation: 'HORIZONTAL' });
       setShowCreateTask(false);
       refetchTasks();
     } catch (err) {
@@ -169,12 +169,16 @@ export default function WorkspaceDetail() {
                 <p className="mt-2 text-sm font-semibold text-slate-900">{workspace.setupType ? workspace.setupType.replace('_', ' ') : 'Not set'}</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Priority</p>
-                <p className="mt-2 text-sm font-semibold text-slate-900">{workspace.priority || 'Not set'}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total Videos</p>
+                <p className="mt-2 text-sm font-semibold text-slate-900">{workspace.totalVideos !== undefined ? workspace.totalVideos : 0}</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</p>
-                <p className="mt-2 text-sm font-semibold text-slate-900">{workspace.status || 'Not set'}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total Pics</p>
+                <p className="mt-2 text-sm font-semibold text-slate-900">{workspace.totalPics !== undefined ? workspace.totalPics : 0}</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Arrival Time</p>
+                <p className="mt-2 text-sm font-semibold text-slate-900">{workspace.arrivalTime || 'Not set'}</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Members</p>
@@ -286,6 +290,10 @@ export default function WorkspaceDetail() {
                     <option value="HIGH">High</option>
                     <option value="URGENT">Urgent</option>
                   </select>
+                  <select value={taskForm.orientation} onChange={(e) => setTaskForm({ ...taskForm, orientation: e.target.value })} className="w-full rounded border px-3 py-2 sm:w-auto">
+                    <option value="HORIZONTAL">Horizontal Shoot</option>
+                    <option value="VERTICAL">Vertical Shoot</option>
+                  </select>
                   <button className="w-full rounded bg-indigo-600 px-4 py-2 text-white sm:w-auto">Create</button>
                 </div>
               </form>
@@ -297,10 +305,30 @@ export default function WorkspaceDetail() {
                   <div key={task.id} className="cursor-pointer rounded border p-4 hover:shadow" onClick={() => navigate(`/workspaces/${workspaceId}/tasks/${task.id}`)}>
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <p className="font-medium">{task.title}</p>
-                        {task.description && <p className="text-sm text-gray-600">{task.description}</p>}
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{task.title}</p>
+                          {task.orientation && (
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                              task.orientation === 'VERTICAL'
+                                ? 'bg-pink-100 text-pink-800 border border-pink-200'
+                                : 'bg-blue-100 text-blue-800 border border-blue-200'
+                            }`}>
+                              {task.orientation === 'VERTICAL' ? 'Vertical' : 'Horizontal'}
+                            </span>
+                          )}
+                        </div>
+                        {task.description && <p className="text-sm text-gray-600 mt-1">{task.description}</p>}
                       </div>
-                      <div className="text-sm text-gray-500">{task.status}</div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-semibold px-2.5 py-0.5 rounded ${
+                          task.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                          task.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
+                          task.status === 'IN_REVIEW' ? 'bg-purple-100 text-purple-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {task.status}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))

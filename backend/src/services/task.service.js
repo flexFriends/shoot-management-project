@@ -156,6 +156,9 @@ export const getTaskById = async (taskId) => {
           status: true,
           notes: true,
           coverImage: true,
+          totalVideos: true,
+          totalPics: true,
+          arrivalTime: true,
           createdBy: {
             select: { id: true, name: true, email: true },
           },
