@@ -32,8 +32,6 @@ const notifyTaskAssignment = async ({ taskId, assigneeId }) => {
             },
           },
         },
-      },
-      include: {
         assignee: {
           select: { id: true, name: true, email: true },
         },
