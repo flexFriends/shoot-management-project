@@ -31,6 +31,7 @@ export const WorkspaceCard = ({ workspace, onEdit, onDelete, onView, status }) =
     COMPLETED: { color: 'blue', icon: '✅' },
     IN_PROGRESS: { color: 'purple', icon: '⏳' },
     ARCHIVED: { color: 'gray', icon: '🗂️' },
+    PENDING: { color: 'red', icon: '⚠️' },
   };
 
   const config = statusConfig[status] || statusConfig.DRAFT;

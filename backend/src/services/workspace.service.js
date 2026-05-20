@@ -2,6 +2,7 @@ import { prisma } from '../config/db.js';
 import { getUnassignedEmployees as computeUnassignedEmployees } from '../utils/taskReminderScheduler.js';
 import { sendEmail } from '../utils/notification.js';
 import { buildWorkspaceAssignmentEmail } from '../utils/emailTemplates.js';
+import { resolveWorkspaceStatus } from '../utils/workspaceStatusResolver.js';
 
 const formatDateLabel = (dateValue) => {
   if (!dateValue) return '';
@@ -21,9 +22,16 @@ const formatDateLabel = (dateValue) => {
  */
 export const createWorkspace = async (workspaceData, userId) => {
   return prisma.$transaction(async (tx) => {
+    const initialStatus = resolveWorkspaceStatus({
+      shootDate: workspaceData.shootDate,
+      status: workspaceData.status || 'DRAFT',
+      tasks: [],
+    });
+
     const createdWorkspace = await tx.workspace.create({
       data: {
         ...workspaceData,
+        status: initialStatus,
         createdById: userId,
       },
     });
@@ -117,9 +125,11 @@ export const getWorkspaces = async (userId, role, page = 1, limit = 20) => {
     const totalTasks = ws.tasks.length;
     const completedTasks = ws.tasks.filter((t) => t.status === 'COMPLETED').length;
     const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+    const resolvedStatus = resolveWorkspaceStatus(ws);
 
     return {
       ...ws,
+      status: resolvedStatus,
       taskCount: totalTasks,
       completedTaskCount: completedTasks,
       progress: Math.round(progress),
@@ -197,9 +207,11 @@ export const getWorkspaceById = async (workspaceId) => {
   const totalTasks = workspace.tasks.length;
   const completedTasks = workspace.tasks.filter((t) => t.status === 'COMPLETED').length;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+  const resolvedStatus = resolveWorkspaceStatus(workspace);
 
   return {
     ...workspace,
+    status: resolvedStatus,
     taskCount: totalTasks,
     completedTaskCount: completedTasks,
     progress: Math.round(progress),
@@ -229,6 +241,29 @@ export const updateWorkspace = async (workspaceId, updateData) => {
       },
     },
   });
+
+  const resolvedStatus = resolveWorkspaceStatus(workspace);
+  if (workspace.status !== resolvedStatus) {
+    return prisma.workspace.update({
+      where: { id: workspaceId },
+      data: { status: resolvedStatus },
+      include: {
+        createdBy: {
+          select: { id: true, name: true, email: true, avatar: true },
+        },
+        members: {
+          include: {
+            user: {
+              select: { id: true, name: true, email: true, avatar: true },
+            },
+          },
+        },
+        tasks: {
+          select: { id: true, status: true },
+        },
+      },
+    });
+  }
 
   return workspace;
 };
@@ -528,7 +563,7 @@ export const getEmployeeDashboard = async (employeeId) => {
           createdAt: true,
           updatedAt: true,
           tasks: {
-            select: { id: true },
+            select: { id: true, status: true },
           },
         },
       },
@@ -547,6 +582,7 @@ export const getEmployeeDashboard = async (employeeId) => {
 
   const allocatedWorkspaces = memberships.map((membership) => {
     const taskCount = membership.workspace.tasks?.length || 0;
+    const resolvedStatus = resolveWorkspaceStatus(membership.workspace);
 
     return {
       id: membership.workspace.id,
@@ -555,7 +591,7 @@ export const getEmployeeDashboard = async (employeeId) => {
       shootDate: membership.workspace.shootDate,
       setupType: membership.workspace.setupType,
       priority: membership.workspace.priority,
-      status: membership.workspace.status,
+      status: resolvedStatus,
       totalVideos: membership.workspace.totalVideos,
       totalPics: membership.workspace.totalPics,
       arrivalTime: membership.workspace.arrivalTime,

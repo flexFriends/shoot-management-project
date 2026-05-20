@@ -9,7 +9,7 @@ const createWorkspaceSchema = z.object({
   shootDate: z.string().nullable().optional(),
   setupType: z.enum(['PREMIUM', 'VERY_PREMIUM', 'PHONE_SETUP']),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional().default('MEDIUM'),
-  status: z.enum(['DRAFT', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED']).optional().default('DRAFT'),
+  status: z.enum(['DRAFT', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED', 'PENDING']).optional().default('DRAFT'),
   notes: z.string().nullable().optional(),
   coverImage: z.string().nullable().optional(),
   totalVideos: z.coerce.number().nonnegative().optional().default(0),

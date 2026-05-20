@@ -3,6 +3,7 @@ import { addDays } from 'date-fns';
 import { prisma } from '../config/db.js';
 import { createNotificationAndEmail } from './notification.js';
 import { buildEscalationEmail, buildManagerReminderEmail } from './emailTemplates.js';
+import { syncAllWorkspaceStatuses } from './workspaceStatusResolver.js';
 
 let schedulerInitialized = false;
 const BUSINESS_TIME_ZONE = 'Asia/Kolkata';
@@ -50,7 +51,7 @@ const getTomorrowWorkspaces = async (managerId) => {
     where: {
       createdById: managerId,
       status: {
-        in: ['DRAFT', 'ACTIVE', 'IN_PROGRESS'],
+        in: ['DRAFT', 'ACTIVE', 'IN_PROGRESS', 'PENDING'],
       },
       OR: [
         {
@@ -459,6 +460,12 @@ export const initTaskReminderScheduler = () => {
   cron.schedule('0 15 * * *', () => runEscalationJob({ label: '3:00 PM', recipientsRole: 'HR', notificationType: 'TASK_REMINDER_HR' }), timezoneOptions);
   cron.schedule('0 16 * * *', () => runEscalationJob({ label: '4:00 PM', recipientsRole: 'ADMIN', notificationType: 'TASK_REMINDER_ADMIN' }), timezoneOptions);
   cron.schedule('0 20 * * *', () => runEscalationJob({ label: '8:00 PM', recipientsRole: 'ADMIN', notificationType: 'TASK_REMINDER_ADMIN', urgent: true }), timezoneOptions);
+
+  // Sync workspace statuses at midnight daily
+  cron.schedule('0 0 * * *', () => {
+    console.log('[Workspace Sync] Running scheduled midnight workspace status sync...');
+    void syncAllWorkspaceStatuses();
+  }, timezoneOptions);
 
   console.log('[Task Reminder] Scheduler initialized with Asia/Kolkata timezone');
 };

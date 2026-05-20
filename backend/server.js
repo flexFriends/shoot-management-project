@@ -3,6 +3,7 @@ import http from 'http';
 import app from './src/app.js';
 import { prisma } from './src/config/db.js';
 import { initTaskReminderScheduler } from './src/utils/taskReminderScheduler.js';
+import { syncAllWorkspaceStatuses } from './src/utils/workspaceStatusResolver.js';
 
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -17,6 +18,9 @@ async function startServer() {
     console.log('✓ Database connection established');
 
     initTaskReminderScheduler();
+    
+    // Sync all workspace statuses on start
+    void syncAllWorkspaceStatuses();
 
     server.listen(PORT, () => {
       console.log(`

@@ -1,6 +1,7 @@
 import { prisma } from '../config/db.js';
 import { sendEmail } from '../utils/notification.js';
 import { buildTaskAssignmentEmail } from '../utils/emailTemplates.js';
+import { syncWorkspaceStatusInDb } from '../utils/workspaceStatusResolver.js';
 
 const formatDateLabel = (dateValue) => {
   if (!dateValue) return '';
@@ -95,6 +96,9 @@ export const createTask = async (workspaceId, taskData, userId) => {
   if (task.assigneeId) {
     void notifyTaskAssignment({ taskId: task.id, assigneeId: task.assigneeId });
   }
+
+  // Sync workspace status in the background
+  void syncWorkspaceStatusInDb(workspaceId);
 
   return task;
 };
@@ -238,6 +242,9 @@ export const updateTask = async (taskId, updateData) => {
     void notifyTaskAssignment({ taskId: task.id, assigneeId: task.assigneeId });
   }
 
+  // Sync workspace status in the background
+  void syncWorkspaceStatusInDb(task.workspaceId);
+
   return task;
 };
 
@@ -248,6 +255,9 @@ export const deleteTask = async (taskId) => {
   const task = await prisma.todoTask.delete({
     where: { id: taskId },
   });
+
+  // Sync workspace status in the background
+  void syncWorkspaceStatusInDb(task.workspaceId);
 
   return task;
 };
@@ -289,6 +299,9 @@ export const submitTask = async (taskId, userId, submissionData) => {
       },
     },
   });
+
+  // Sync workspace status in the background
+  void syncWorkspaceStatusInDb(task.workspaceId);
 
   return {
     task,
@@ -435,7 +448,7 @@ export const approveSubmission = async (taskId, managerId, approvalNote) => {
         select: { id: true, name: true },
       },
       task: {
-        select: { id: true, title: true },
+        select: { id: true, title: true, workspaceId: true },
       },
     },
   });
@@ -445,6 +458,9 @@ export const approveSubmission = async (taskId, managerId, approvalNote) => {
     where: { id: taskId },
     data: { status: 'COMPLETED' },
   });
+
+  // Sync workspace status in the background
+  void syncWorkspaceStatusInDb(submission.task.workspaceId);
 
   return submission;
 };
@@ -469,7 +485,7 @@ export const rejectSubmission = async (taskId, managerId, rejectionReason) => {
         select: { id: true, name: true },
       },
       task: {
-        select: { id: true, title: true },
+        select: { id: true, title: true, workspaceId: true },
       },
     },
   });
@@ -479,6 +495,9 @@ export const rejectSubmission = async (taskId, managerId, rejectionReason) => {
     where: { id: taskId },
     data: { status: 'IN_PROGRESS' },
   });
+
+  // Sync workspace status in the background
+  void syncWorkspaceStatusInDb(submission.task.workspaceId);
 
   return submission;
 };

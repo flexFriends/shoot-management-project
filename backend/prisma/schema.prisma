@@ -30,6 +30,7 @@ enum WorkspaceStatus {
   IN_PROGRESS
   COMPLETED
   ARCHIVED
+  PENDING
 }
 
 enum WorkspaceSetupType {
