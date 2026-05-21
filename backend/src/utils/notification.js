@@ -37,17 +37,14 @@ const getTransporter = () => {
   const secure = Number(port) === 465;
 
   transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure,
-    auth: {
-      user,
-      pass,
-    },
-    tls: {
-      rejectUnauthorized: false,
-    },
-  });
+  host,
+  port,
+  secure: false,
+  auth: {
+    user,
+    pass,
+  },
+});
 
   transporter.verify((error, success) => {
     if (error) {
