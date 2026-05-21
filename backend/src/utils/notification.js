@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import https from 'https';
 import { prisma } from '../config/db.js';
+import axios from "axios";
 
 let transporter;
 
@@ -178,40 +179,84 @@ const sendEmailViaResend = (apiKey, from, to, subject, htmlBody) => {
 //   }
 // };
 
+// export const sendEmail = async (to, subject, htmlBody) => {
+//   const { host, port, user, from } = getMailConfig();
+//   const mailer = getTransporter();
+
+//   console.info(
+//     `[Email] Attempting send via ${host}:${port} from ${maskEmail(from || user)} to ${maskEmail(to)} | subject="${subject}"`,
+//   );
+
+//   try {
+//     console.log("BEFORE SEND MAIL");
+
+//     const info = await mailer.sendMail({
+//       from,
+//       to,
+//       subject,
+//       html: htmlBody,
+//     });
+
+//     console.log("AFTER SEND MAIL");
+
+//     console.info(
+//       `[Email] Sent successfully | messageId=${info.messageId || "n/a"} | accepted=${(info.accepted || []).length} | rejected=${(info.rejected || []).length}`,
+//     );
+
+//     return info;
+//   } catch (error) {
+//     console.error("========== EMAIL ERROR ==========");
+//     console.error("CODE:", error.code);
+//     console.error("RESPONSE CODE:", error.responseCode);
+//     console.error("COMMAND:", error.command);
+//     console.error("MESSAGE:", error.message);
+//     console.error("RESPONSE:", error.response);
+//     console.error("FULL ERROR:", error);
+//     console.error("=================================");
+
+//     throw error;
+//   }
+// };
+
 export const sendEmail = async (to, subject, htmlBody) => {
-  const { host, port, user, from } = getMailConfig();
-  const mailer = getTransporter();
-
-  console.info(
-    `[Email] Attempting send via ${host}:${port} from ${maskEmail(from || user)} to ${maskEmail(to)} | subject="${subject}"`,
-  );
-
   try {
-    console.log("BEFORE SEND MAIL");
+    console.log("[Brevo API] Sending email...");
 
-    const info = await mailer.sendMail({
-      from,
-      to,
-      subject,
-      html: htmlBody,
-    });
-
-    console.log("AFTER SEND MAIL");
-
-    console.info(
-      `[Email] Sent successfully | messageId=${info.messageId || "n/a"} | accepted=${(info.accepted || []).length} | rejected=${(info.rejected || []).length}`,
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: {
+          name: "We Promote",
+          email: process.env.EMAIL_FROM,
+        },
+        to: [
+          {
+            email: to,
+          },
+        ],
+        subject,
+        htmlContent: htmlBody,
+      },
+      {
+        headers: {
+          accept: "application/json",
+          "api-key": process.env.BREVO_API_KEY,
+          "content-type": "application/json",
+        },
+      }
     );
 
-    return info;
+    console.log("[Brevo API] Email sent:", response.data);
+
+    return response.data;
   } catch (error) {
-    console.error("========== EMAIL ERROR ==========");
-    console.error("CODE:", error.code);
-    console.error("RESPONSE CODE:", error.responseCode);
-    console.error("COMMAND:", error.command);
-    console.error("MESSAGE:", error.message);
-    console.error("RESPONSE:", error.response);
-    console.error("FULL ERROR:", error);
-    console.error("=================================");
+    console.error("[Brevo API] ERROR:");
+
+    if (error.response) {
+      console.error(error.response.data);
+    } else {
+      console.error(error.message);
+    }
 
     throw error;
   }
