@@ -49,6 +49,15 @@ export const workspaceApi = {
       role,
     }),
 
+  shareAttendanceLocation: (workspaceId, userId, data) =>
+    axiosInstance.post(
+      `/workspaces/${workspaceId}/members/${userId}/attendance-location`,
+      data,
+    ),
+
+  markAttendancePresent: (workspaceId, userId) =>
+    axiosInstance.patch(`/workspaces/${workspaceId}/members/${userId}/attendance`),
+
   removeMember: (workspaceId, userId) =>
     axiosInstance.delete(`/workspaces/${workspaceId}/members/${userId}`),
 

@@ -24,6 +24,8 @@ router.delete('/:id', workspaceController.deleteWorkspace);
 // Members
 router.post('/:id/members', workspaceController.addMember);
 router.delete('/:id/members/:userId', workspaceController.removeMember);
+router.post('/:id/members/:userId/attendance-location', workspaceController.shareAttendanceLocation);
+router.patch('/:id/members/:userId/attendance', authorize('MANAGER', 'ADMIN'), workspaceController.markAttendancePresent);
 
 // Activity
 router.get('/:id/activity', workspaceController.getActivity);

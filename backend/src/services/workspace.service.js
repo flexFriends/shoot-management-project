@@ -68,6 +68,9 @@ export const createWorkspace = async (workspaceData, userId) => {
             user: {
               select: { id: true, name: true, email: true, avatar: true },
             },
+            attendanceReviewedBy: {
+              select: { id: true, name: true, email: true },
+            },
           },
         },
       },
@@ -106,6 +109,9 @@ export const getWorkspaces = async (userId, role, page = 1, limit = 20) => {
           include: {
             user: {
               select: { id: true, name: true, email: true, avatar: true },
+            },
+            attendanceReviewedBy: {
+              select: { id: true, name: true, email: true },
             },
           },
         },
@@ -162,6 +168,9 @@ export const getWorkspaceById = async (workspaceId) => {
           user: {
             select: { id: true, name: true, email: true, avatar: true, phone: true },
           },
+            attendanceReviewedBy: {
+              select: { id: true, name: true, email: true },
+            },
         },
       },
       tasks: {
@@ -234,6 +243,9 @@ export const updateWorkspace = async (workspaceId, updateData) => {
           user: {
             select: { id: true, name: true, email: true, avatar: true },
           },
+          attendanceReviewedBy: {
+            select: { id: true, name: true, email: true },
+          },
         },
       },
       tasks: {
@@ -255,6 +267,9 @@ export const updateWorkspace = async (workspaceId, updateData) => {
           include: {
             user: {
               select: { id: true, name: true, email: true, avatar: true },
+            },
+            attendanceReviewedBy: {
+              select: { id: true, name: true, email: true },
             },
           },
         },
@@ -302,6 +317,7 @@ export const addWorkspaceMember = async (workspaceId, userId, role = 'MEMBER') =
         workspaceId,
         userId,
         role,
+        attendanceStatus: 'ABSENT',
       },
       include: {
         user: {
@@ -359,6 +375,161 @@ export const addWorkspaceMember = async (workspaceId, userId, role = 'MEMBER') =
   }
 
   return result.member;
+};
+
+/**
+ * Save live location attendance for a workspace member.
+ */
+export const submitAttendanceLocation = async (
+  workspaceId,
+  userId,
+  locationData,
+  submittedById,
+  note = null,
+) => {
+  const member = await prisma.workspaceMember.findUnique({
+    where: {
+      workspaceId_userId: {
+        workspaceId,
+        userId,
+      },
+    },
+    select: {
+      workspaceId: true,
+      userId: true,
+      workspace: {
+        select: {
+          title: true,
+        },
+      },
+      user: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  if (!member) {
+    throw new Error('Workspace member not found');
+  }
+
+  const updated = await prisma.workspaceMember.update({
+    where: {
+      workspaceId_userId: {
+        workspaceId,
+        userId,
+      },
+    },
+    data: {
+      attendanceStatus: 'PENDING_APPROVAL',
+      attendanceProofUrl: null,
+      attendanceLocationLatitude: locationData.latitude,
+      attendanceLocationLongitude: locationData.longitude,
+      attendanceLocationAccuracy: locationData.accuracy ?? null,
+      attendanceLocationLink: locationData.link,
+      attendanceNote: note,
+      attendanceSubmittedAt: new Date(),
+      attendanceReviewedAt: null,
+      attendanceReviewedById: null,
+    },
+    include: {
+      user: {
+        select: { id: true, name: true, email: true, avatar: true },
+      },
+      attendanceReviewedBy: {
+        select: { id: true, name: true, email: true },
+      },
+    },
+  });
+
+  await prisma.activityLog.create({
+    data: {
+      action: 'ATTENDANCE_LOCATION_SHARED',
+      description: `Attendance location shared for ${member.user.name} in workspace "${member.workspace.title}"`,
+      userId: submittedById,
+      workspaceId,
+      metadata: {
+        userId,
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+        accuracy: locationData.accuracy ?? null,
+        link: locationData.link,
+        status: 'PENDING_APPROVAL',
+      },
+    },
+  });
+
+  return updated;
+};
+
+/**
+ * Mark a workspace member present after checking attendance location.
+ */
+export const markMemberPresent = async (workspaceId, userId, reviewedById) => {
+  const member = await prisma.workspaceMember.findUnique({
+    where: {
+      workspaceId_userId: {
+        workspaceId,
+        userId,
+      },
+    },
+    select: {
+      workspace: {
+        select: {
+          title: true,
+        },
+      },
+      user: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  if (!member) {
+    throw new Error('Workspace member not found');
+  }
+
+  const updated = await prisma.workspaceMember.update({
+    where: {
+      workspaceId_userId: {
+        workspaceId,
+        userId,
+      },
+    },
+    data: {
+      attendanceStatus: 'PRESENT',
+      attendanceReviewedAt: new Date(),
+      attendanceReviewedById: reviewedById,
+    },
+    include: {
+      user: {
+        select: { id: true, name: true, email: true, avatar: true },
+      },
+      attendanceReviewedBy: {
+        select: { id: true, name: true, email: true },
+      },
+    },
+  });
+
+  await prisma.activityLog.create({
+    data: {
+      action: 'ATTENDANCE_MARKED_PRESENT',
+      description: `Attendance marked present for ${member.user.name} in workspace "${member.workspace.title}"`,
+      userId: reviewedById,
+      workspaceId,
+      metadata: {
+        userId,
+        status: 'PRESENT',
+      },
+    },
+  });
+
+  return updated;
 };
 
 /**
@@ -623,6 +794,8 @@ export default {
   deleteWorkspace,
   addWorkspaceMember,
   removeWorkspaceMember,
+  submitAttendanceLocation,
+  markMemberPresent,
   getWorkspaceActivity,
   getManagerDashboard,
   getEmployeeDashboard,

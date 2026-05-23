@@ -55,6 +55,12 @@ enum SubmissionStatus {
   REJECTED
 }
 
+enum AttendanceStatus {
+  ABSENT
+  PENDING_APPROVAL
+  PRESENT
+}
+
 enum NotificationType {
   TASK_ASSIGNED
   TASK_SUBMITTED
@@ -97,6 +103,7 @@ model User {
   // Relations
   createdWorkspaces  Workspace[]         @relation("WorkspaceCreator")
   workspaceMemberships WorkspaceMember[]
+  attendanceReviews  WorkspaceMember[]   @relation("AttendanceReviewedBy")
   assignedTasks      TodoTask[]          @relation("TaskAssignee")
   createdTasks       TodoTask[]          @relation("TaskCreator")
   taskSubmissions    TaskSubmission[]    @relation("SubmittedTasks")
@@ -141,10 +148,21 @@ model WorkspaceMember {
   workspaceId String
   userId      String
   role        String    @default("MEMBER") // LEAD or MEMBER
+  attendanceStatus AttendanceStatus @default(ABSENT)
+  attendanceProofUrl String?
+  attendanceLocationLatitude Float?
+  attendanceLocationLongitude Float?
+  attendanceLocationAccuracy Float?
+  attendanceLocationLink String?
+  attendanceNote String?
+  attendanceSubmittedAt DateTime?
+  attendanceReviewedAt DateTime?
+  attendanceReviewedById String?
   addedAt     DateTime  @default(now())
 
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attendanceReviewedBy User? @relation("AttendanceReviewedBy", fields: [attendanceReviewedById], references: [id], onDelete: SetNull)
 
   @@unique([workspaceId, userId])
   @@index([userId])

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import * as workspaceService from '../services/workspace.service.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
+import path from 'path';
 
 const createWorkspaceSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -210,6 +211,75 @@ export const addMember = async (req, res, next) => {
 };
 
 /**
+ * Employee shares live location for a workspace membership.
+ */
+export const shareAttendanceLocation = async (req, res, next) => {
+  try {
+    const { id: workspaceId, userId } = req.params;
+
+    if (req.user.role !== 'EMPLOYEE' && req.user.role !== 'MANAGER' && req.user.role !== 'ADMIN') {
+      return errorResponse(res, 403, 'Access denied');
+    }
+
+    if (req.user.role === 'EMPLOYEE' && req.user.userId !== userId) {
+      return errorResponse(res, 403, 'Employees can only share their own attendance location');
+    }
+
+    const latitude = Number(req.body?.latitude);
+    const longitude = Number(req.body?.longitude);
+    const accuracyValue = req.body?.accuracy;
+    const accuracy = accuracyValue === undefined || accuracyValue === null || accuracyValue === '' ? null : Number(accuracyValue);
+
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      return errorResponse(res, 400, 'Latitude and longitude are required');
+    }
+
+    const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+    const updated = await workspaceService.submitAttendanceLocation(
+      workspaceId,
+      userId,
+      {
+        latitude,
+        longitude,
+        accuracy: Number.isFinite(accuracy) ? accuracy : null,
+        link: mapLink,
+      },
+      req.user.userId,
+      req.body?.note || null
+    );
+
+    return successResponse(res, 200, updated, 'Attendance location shared successfully');
+  } catch (error) {
+    if (error.message.includes('not found')) {
+      return errorResponse(res, 404, error.message);
+    }
+    return errorResponse(res, 500, error.message);
+  }
+};
+
+/**
+ * Manager marks a workspace member present after verifying attendance location.
+ */
+export const markAttendancePresent = async (req, res, next) => {
+  try {
+    const { id: workspaceId, userId } = req.params;
+
+    const workspace = await workspaceService.getWorkspaceById(workspaceId);
+    if (req.user.role !== 'ADMIN' && workspace.createdById !== req.user.userId) {
+      return errorResponse(res, 403, 'Only the workspace owner or an admin can mark attendance present');
+    }
+
+    const updated = await workspaceService.markMemberPresent(workspaceId, userId, req.user.userId);
+    return successResponse(res, 200, updated, 'Attendance marked as present');
+  } catch (error) {
+    if (error.message.includes('not found')) {
+      return errorResponse(res, 404, error.message);
+    }
+    return errorResponse(res, 500, error.message);
+  }
+};
+
+/**
  * Remove member from workspace
  */
 export const removeMember = async (req, res, next) => {
@@ -303,6 +373,8 @@ export default {
   deleteWorkspace,
   addMember,
   removeMember,
+  shareAttendanceLocation,
+  markAttendancePresent,
   getActivity,
   getManagerDashboard,
   getUnassignedEmployeesAudit,

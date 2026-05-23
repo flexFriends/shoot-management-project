@@ -13,7 +13,7 @@ if (!fs.existsSync(uploadDir)) {
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const workspaceId = req.params.workspaceId || 'general';
-    const taskId = req.params.id || 'general';
+    const taskId = req.params.id || req.params.userId || 'general';
     const dir = path.join(uploadDir, workspaceId, taskId);
 
     fs.mkdirSync(dir, { recursive: true });

@@ -6,6 +6,15 @@ import { workspaceApi, taskApi, authApi } from '../api/index.js';
 import { useAuthStore } from '../store/authStore.js';
 import Sidebar from '../components/layout/Sidebar.jsx';
 
+const getBackendAssetUrl = (assetPath) => {
+  if (!assetPath) return '';
+  if (/^https?:\/\//i.test(assetPath)) return assetPath;
+
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const baseUrl = apiUrl.replace(/\/api\/?$/, '');
+  return `${baseUrl}${assetPath.startsWith('/') ? assetPath : `/${assetPath}`}`;
+};
+
 export default function WorkspaceDetail() {
   const { workspaceId } = useParams();
   const navigate = useNavigate();
@@ -15,6 +24,8 @@ export default function WorkspaceDetail() {
   const [selectedUserId, setSelectedUserId] = useState('');
   const [memberRole, setMemberRole] = useState('MEMBER');
   const [taskForm, setTaskForm] = useState({ title: '', description: '', dueDate: '', referenceLink: '', priority: 'MEDIUM', orientation: 'HORIZONTAL' });
+  const [attendanceSharing, setAttendanceSharing] = useState({});
+  const [attendanceApproving, setAttendanceApproving] = useState({});
 
   const { data: workspace, isLoading: wsLoading, refetch: refetchWorkspace } = useQuery({
     queryKey: ['workspace', workspaceId],
@@ -45,6 +56,62 @@ export default function WorkspaceDetail() {
   });
 
   const isManager = user?.role === 'MANAGER' || user?.role === 'ADMIN';
+
+  const getAttendanceBadgeClass = (status) => {
+    if (status === 'PRESENT') return 'bg-green-100 text-green-700 border-green-200';
+    if (status === 'PENDING_APPROVAL') return 'bg-amber-100 text-amber-700 border-amber-200';
+    return 'bg-rose-100 text-rose-700 border-rose-200';
+  };
+
+  const handleShareLiveLocation = async (memberId) => {
+    if (!navigator.geolocation) {
+      toast.error('Live location is not supported on this device');
+      return;
+    }
+
+    try {
+      setAttendanceSharing((current) => ({ ...current, [memberId]: true }));
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0,
+        });
+      });
+
+      await workspaceApi.shareAttendanceLocation(workspaceId, memberId, {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy,
+      });
+      toast.success('Live location shared');
+      refetchWorkspace();
+    } catch (err) {
+      const message = err?.code === 1
+        ? 'Location permission denied'
+        : err?.code === 2
+          ? 'Location unavailable'
+          : err?.code === 3
+            ? 'Location request timed out'
+            : err.response?.data?.message || 'Failed to share live location';
+      toast.error(message);
+    } finally {
+      setAttendanceSharing((current) => ({ ...current, [memberId]: false }));
+    }
+  };
+
+  const handleMarkPresent = async (memberId) => {
+    try {
+      setAttendanceApproving((current) => ({ ...current, [memberId]: true }));
+      await workspaceApi.markAttendancePresent(workspaceId, memberId);
+      toast.success('Marked as present');
+      refetchWorkspace();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to mark present');
+    } finally {
+      setAttendanceApproving((current) => ({ ...current, [memberId]: false }));
+    }
+  };
 
   const handleAddMember = async (e) => {
     e.preventDefault();
@@ -129,6 +196,11 @@ export default function WorkspaceDetail() {
     } catch (error) {
       return 'Not set';
     }
+  };
+
+  const formatCoordinates = (latitude, longitude) => {
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return '';
+    return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
   };
 
   return (
@@ -248,10 +320,77 @@ export default function WorkspaceDetail() {
             <div className="space-y-3">
               {workspace.members?.length > 0 ? (
                 workspace.members.map((m) => (
-                  <div key={m.id} className="flex flex-col gap-3 rounded bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="font-medium">{m.user?.name}</p>
-                      <p className="text-xs text-gray-600">{m.user?.email}</p>
+                  <div key={m.id} className="flex flex-col gap-4 rounded bg-gray-50 p-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-2">
+                      <div>
+                        <p className="font-medium">{m.user?.name}</p>
+                        <p className="text-xs text-gray-600">{m.user?.email}</p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${getAttendanceBadgeClass(m.attendanceStatus)}`}>
+                          {m.attendanceStatus || 'ABSENT'}
+                        </span>
+                        {m.attendanceSubmittedAt && (
+                          <span className="text-xs text-gray-500">
+                            Shared {new Date(m.attendanceSubmittedAt).toLocaleString('en-GB')}
+                          </span>
+                        )}
+                      </div>
+                      {m.attendanceLocationLink && (
+                        <a
+                          href={m.attendanceLocationLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex text-xs font-medium text-indigo-600 hover:text-indigo-700 break-all"
+                        >
+                          Open live location
+                        </a>
+                      )}
+                      {m.attendanceLocationLatitude !== null && m.attendanceLocationLongitude !== null && (
+                        <p className="text-xs text-gray-500">
+                          Coordinates: {formatCoordinates(m.attendanceLocationLatitude, m.attendanceLocationLongitude)}
+                          {m.attendanceLocationAccuracy !== null && m.attendanceLocationAccuracy !== undefined
+                            ? ` · Accuracy ±${Math.round(m.attendanceLocationAccuracy)}m`
+                            : ''}
+                        </p>
+                      )}
+                      {!m.attendanceLocationLink && m.attendanceProofUrl && (
+                        <a
+                          href={getBackendAssetUrl(m.attendanceProofUrl)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex text-xs font-medium text-indigo-600 hover:text-indigo-700 break-all"
+                        >
+                          View uploaded proof
+                        </a>
+                      )}
+                      {m.attendanceReviewedBy && m.attendanceReviewedAt && (
+                        <p className="text-xs text-gray-500">
+                          Reviewed by {m.attendanceReviewedBy.name} on {new Date(m.attendanceReviewedAt).toLocaleString('en-GB')}
+                        </p>
+                      )}
+                      {user?.role === 'EMPLOYEE' && user.id === m.userId && m.attendanceStatus !== 'PRESENT' && (
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <button
+                            type="button"
+                            onClick={() => handleShareLiveLocation(m.userId)}
+                            disabled={attendanceSharing[m.userId]}
+                            className="inline-flex items-center justify-center rounded bg-indigo-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                          >
+                            {attendanceSharing[m.userId] ? 'Sharing...' : 'Share live location'}
+                          </button>
+                        </div>
+                      )}
+                      {isManager && m.attendanceStatus !== 'PRESENT' && (
+                        <button
+                          type="button"
+                          onClick={() => handleMarkPresent(m.userId)}
+                          disabled={attendanceApproving[m.userId]}
+                          className="inline-flex items-center justify-center rounded bg-emerald-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                        >
+                          {attendanceApproving[m.userId] ? 'Saving...' : 'Mark present'}
+                        </button>
+                      )}
                     </div>
                     {isManager && (
                       <button onClick={() => { if (confirm('Remove member?')) { workspaceApi.removeMember(workspaceId, m.userId).then(() => { toast.success('Removed'); refetchWorkspace(); }); } }} className="text-red-600">Remove</button>
